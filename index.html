@@ -81,7 +81,7 @@
         .wireframe-cube {
             width: 50px;
             height: 50px;
-            animation: slowSpin 20s linear infinite;
+            animation: slowSpin 10s linear infinite;
             stroke: var(--text-color);
             fill: none;
             stroke-width: 1.5;
@@ -212,11 +212,25 @@
     <div class="container fade-in">
         <header>
             <div class="geometry-container">
-                <!-- Abstract minimalist SVG animation -->
+                <!-- Abstract minimalist morphing SVG animation -->
                 <svg class="wireframe-cube" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="20" y="20" width="60" height="60" />
-                    <polygon points="20,20 40,5 100,5 80,20" />
-                    <polygon points="80,20 100,5 100,65 80,80" />
+                    <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round">
+                        <animate 
+                            attributeName="d" 
+                            dur="5s" 
+                            repeatCount="indefinite"
+                            values="
+                                M 50,5 L 89,27.5 L 89,72.5 L 50,95 L 11,72.5 L 11,27.5 Z M 50,50 L 50,95 M 50,50 L 11,27.5 M 50,50 L 89,27.5;
+                                M 50,10 L 67.5,47.5 L 85,85 L 50,85 L 15,85 L 32.5,47.5 Z M 50,50 L 50,85 M 50,50 L 15,85 M 50,50 L 85,85;
+                                M 50,5 L 95,50 L 95,50 L 50,95 L 5,50 L 5,50 Z M 50,5 L 50,95 M 50,50 L 5,50 M 50,50 L 95,50;
+                                M 20,20 L 80,20 L 50,50 L 80,80 L 20,80 L 50,50 Z M 20,20 L 80,80 M 50,50 L 20,80 M 50,50 L 80,20;
+                                M 50,5 L 89,27.5 L 89,72.5 L 50,95 L 11,72.5 L 11,27.5 Z M 50,50 L 50,95 M 50,50 L 11,27.5 M 50,50 L 89,27.5
+                            "
+                            keyTimes="0; 0.25; 0.5; 0.75; 1"
+                            calcMode="spline"
+                            keySplines="0.4 0 0.2 1; 0.4 0 0.2 1; 0.4 0 0.2 1; 0.4 0 0.2 1"
+                        />
+                    </path>
                 </svg>
             </div>
             <h1 class="site-title">intuitions.games</h1>
@@ -224,7 +238,7 @@
         </header>
 
         <section class="about fade-in delay-1">
-            <p>From exploring existential risk to navigating value problems, our projects transform foundational philosophy into playable mechanics.</p>
+            <p>We build interactive systems that test moral frameworks and stretch the boundaries of conventional logic. From exploring existential risk to navigating value problems, our projects transform foundational philosophy into playable mechanics.</p>
         </section>
 
         <section class="projects fade-in delay-2">
