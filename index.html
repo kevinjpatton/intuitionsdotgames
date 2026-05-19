@@ -66,6 +66,31 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* Navigation Menu */
+        .main-nav {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 3rem;
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+            width: 100%;
+        }
+
+        .nav-link {
+            font-family: var(--font-heading);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            text-decoration: none;
+            color: var(--text-color);
+            transition: color 0.2s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--accent-color);
+        }
+
         /* Hero Section */
         header {
             padding: 12vh 0 8vh;
@@ -204,10 +229,18 @@
         @media (max-width: 600px) {
             .project-grid { grid-template-columns: 1fr; }
             section.about { text-align: left; }
+            .main-nav { gap: 1rem; }
         }
     </style>
 </head>
 <body>
+
+    <nav class="main-nav fade-in">
+        <a href="#ethics" class="nav-link">Ethics</a>
+        <a href="#ai" class="nav-link">AI</a>
+        <a href="#meaning-of-life" class="nav-link">Meaning of Life</a>
+        <a href="#metaphysics" class="nav-link">Metaphysics</a>
+    </nav>
 
     <div class="container fade-in">
         <header>
