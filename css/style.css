@@ -155,21 +155,45 @@
             border-color: var(--accent-color);
         }
 
-        /* Footer */
+        /* Footer & Contact Button */
         footer {
-            margin-top: 4rem;
+            margin-top: auto;
             text-align: center;
-            font-family: var(--font-heading);
-            font-size: 0.85rem;
+            padding: 4rem 0;
             border-top: 1px solid var(--border-color);
-            padding-top: 2rem;
-            width: 100%;
+        }
+
+        .footer-text {
+            font-style: italic;
+            margin-bottom: 2rem;
+            color: #444;
+        }
+
+        .contact-btn {
+            display: inline-block;
+            font-family: var(--font-heading);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            text-decoration: none;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            transition: all 0.2s ease;
+            background: transparent;
+            cursor: pointer;
+        }
+
+        .contact-btn:hover {
+            background-color: var(--accent-color);
+            color: #FFFFFF;
+            border-color: var(--accent-color);
         }
 
         @media (max-width: 600px) {
+            .project-grid { grid-template-columns: 1fr; }
+            section.about { text-align: left; }
             .main-nav { gap: 1rem; }
-            h1 { font-size: 2.5rem; }
-            .experiment-card { padding: 1.5rem; }
         }
 /* Hero Section */
         header {
