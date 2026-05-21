@@ -1,19 +1,5 @@
 /* style.css */
-        :root {
-            --bg-color: #F7F7F7;
-            --text-color: #000000;
-            --border-color: #222222;
-            --accent-color: #0033FF; /* Electric Blue */
-            --font-heading: 'Space Grotesk', sans-serif;
-            --font-body: 'EB Garamond', serif;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
+      
         body {
             background-color: var(--bg-color);
             color: var(--text-color);
