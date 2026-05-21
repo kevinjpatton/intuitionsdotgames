@@ -171,3 +171,41 @@
             h1 { font-size: 2.5rem; }
             .experiment-card { padding: 1.5rem; }
         }
+/* Hero Section */
+        header {
+            padding: 12vh 0 8vh;
+            text-align: center;
+        }
+
+        .geometry-container {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .wireframe-cube {
+            width: 50px;
+            height: 50px;
+            animation: slowSpin 10s linear infinite;
+            stroke: var(--text-color);
+            fill: none;
+            stroke-width: 1.5;
+        }
+
+        @keyframes slowSpin {
+            100% { transform: rotate(360deg); }
+        }
+
+        h1.site-title {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            letter-spacing: -0.03em;
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            font-style: italic;
+            font-size: 1.25rem;
+            color: #444;
+            max-width: 600px;
+            margin: 0 auto;
+        }
