@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Chinese Room</title>
+    <style>
+        :root {
+            --bg-color: #1a1a24;
+            --panel-bg: #2a2a36;
+            --text-main: #f0f0f5;
+            --text-muted: #a0a0b0;
+            --accent: #10b981;
+            --accent-hover: #059669;
+            --error: #ef4444;
+        }
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: var(--bg-color); color: var(--text-main);
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            overflow: hidden; touch-action: none;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        /* State Containers */
+        .state-container {
+            display: none; width: 100%; height: 100%;
+            flex-direction: column; justify-content: center; align-items: center;
+            text-align: center; padding: 20px; box-sizing: border-box;
+        }
+        .active-state { display: flex; animation: fadeIn 0.5s ease-in-out; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Typography & UI Elements */
+        h1 { font-size: 2.5rem; margin-bottom: 10px; }
+        p { font-size: 1.2rem; max-width: 600px; line-height: 1.6; color: var(--text-muted); margin-bottom: 30px; margin-left: auto; margin-right: auto;}
+        
+        .panel {
+            background-color: var(--panel-bg); padding: 40px;
+            border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            max-width: 800px; width: 90%;
+        }
+
+        button.primary-btn {
+            background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+            color: white; border: none; padding: 15px 40px;
+            font-size: 1.2rem; font-weight: bold; border-radius: 50px;
+            cursor: pointer; box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+            transition: transform 0.1s, box-shadow 0.1s;
+            user-select: none;
+        }
+        button.primary-btn:active { transform: scale(0.95); box-shadow: 0 2px 5px rgba(16, 185, 129, 0.4); }
+
+        /* Narrative Visuals */
+        .visual-block {
+            font-size: 4rem; background: rgba(0,0,0,0.2);
+            width: 100%; height: 200px; border-radius: 12px;
+            display: flex; justify-content: center; align-items: center;
+            margin-bottom: 20px; border: 2px dashed #444;
+        }
+
+        /* --- GAME UI SPECIFICS --- */
+        #game-ui-top {
+            display: flex; justify-content: space-between; width: 100%; max-width: 800px;
+            padding: 0 20px 20px 20px; font-size: 2rem; font-weight: bold;
+            font-family: monospace; color: var(--accent);
+        }
+        
+        .game-layout {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+            width: 100%; max-width: 800px; text-align: left;
+        }
+
+        .game-box {
+            background: rgba(0,0,0,0.4); border: 1px solid #444;
+            border-radius: 12px; padding: 20px; display: flex; flex-direction: column;
+        }
+
+        .box-title { font-size: 1rem; font-weight: bold; color: var(--text-muted); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 2px; }
+
+        #inbox-display { font-size: 3rem; text-align: center; margin: 20px 0; letter-spacing: 5px; }
+        
+        #rulebook-display { 
+            font-family: monospace; font-size: 1.1rem; overflow-y: auto; 
+            max-height: 200px; color: #ccc; line-height: 1.8;
+            padding-right: 10px;
+        }
+
+        /* Custom scrollbar for rulebook to keep it clean */
+        #rulebook-display::-webkit-scrollbar { width: 8px; }
+        #rulebook-display::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 4px; }
+        #rulebook-display::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+
+        #outbox-display {
+            min-height: 60px; background: #000; border: 1px solid #555; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2.5rem; letter-spacing: 5px; margin-bottom: 15px;
+        }
+
+        .keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 15px; }
+        .keypad button {
+            background: #334155; border: none; color: white; padding: 15px;
+            font-size: 1.8rem; border-radius: 8px; cursor: pointer; transition: 0.1s;
+        }
+        .keypad button:hover { background: var(--accent); color: #000; }
+        .keypad button:active { transform: scale(0.95); }
+
+        .controls { display: flex; gap: 10px; }
+        .controls button { flex: 1; padding: 15px; font-weight: bold; font-size: 1.2rem; border-radius: 8px; border: none; cursor: pointer; }
+        .btn-send { background: var(--accent); color: #000; }
+        .btn-clear { background: #ef4444; color: #fff; }
+
+        /* Notification overlay */
+        #game-notification {
+            position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 4rem; font-weight: bold; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+            text-shadow: 0 5px 20px rgba(0,0,0,0.8); z-index: 100;
+        }
+        .notify-success { color: var(--accent); }
+        .notify-error { color: var(--error); }
+
+    </style>
+</head>
+<body>
+
+    <div id="intro-state" class="state-container active-state">
+        <div class="panel">
+            <h1>The Chinese Room</h1>
+            <p>
+                Can a computer truly understand what it is doing, or is it merely simulating intelligence? 
+            </p>
+            <p>
+                In 1980, philosopher John Searle proposed a thought experiment designed to challenge the idea that running a computer program is sufficient for creating a conscious mind. In this module, you will step inside that room.
+            </p>
+            <button class="primary-btn" onclick="startNarrative()">Examine the Theory</button>
+        </div>
+    </div>
+
+    <div id="narrative-state" class="state-container">
+        <div class="panel">
+            <div id="narrative-visual" class="visual-block">🤖</div>
+            <h2 id="narrative-title">Phase Title</h2>
+            <p id="narrative-text">Phase Text</p>
+            <button class="primary-btn" id="narrative-btn" onclick="nextNarrative()">Continue</button>
+        </div>
+    </div>
+
+    <div id="game-state" class="state-container">
+        <div id="game-notification">SUCCESS</div>
+        
+        <div id="game-ui-top">
+            <div>TIMER: <span id="timer-display">60</span></div>
+            <div>SCORE: <span id="score-display">0</span></div>
+        </div>
+
+        <div class="game-layout">
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+                <div class="game-box">
+                    <div class="box-title">Incoming Query (Inbox)</div>
+                    <div id="inbox-display">?</div>
+                </div>
+                <div class="game-box" style="flex-grow: 1;">
+                    <div class="box-title">System Rulebook</div>
+                    <div id="rulebook-display"></div>
+                </div>
+            </div>
+
+            <div class="game-box">
+                <div class="box-title">Construct Response (Outbox)</div>
+                <div id="outbox-display"></div>
+                <div class="keypad" id="keypad-container">
+                    </div>
+                <div class="controls">
+                    <button class="btn-clear" onclick="clearOutbox()">CLEAR</button>
+                    <button class="btn-send" onclick="sendOutput()">SEND</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="takeaway-state" class="state-container">
+        <div class="panel">
+            <div id="takeaway-visual" class="visual-block">🧠</div>
+            <h2 id="takeaway-title">Phase Title</h2>
+            <p id="takeaway-text">Phase Text</p>
+            <button class="primary-btn" id="takeaway-btn" onclick="nextTakeaway()">Continue</button>
+        </div>
+    </div>
+
+    <div id="conclusion-state" class="state-container">
+        <div class="panel">
+            <h1>Simulation Terminated</h1>
+            <p>
+                "Syntax by itself is neither constitutive of nor sufficient for semantics."<br>
+                <em>— John Searle</em>
+            </p>
+            <p>
+                By experiencing the mechanical, blind manipulation of symbols, you have seen firsthand the gap between simulating intelligence and actually possessing a mind.
+            </p>
+            <button class="primary-btn" onclick="resetToGame()">Reboot Simulation</button>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA ---
+        const narrativePhases = [
+            { icon: "👤", title: "The Turing Test", text: "In 1950, Alan Turing proposed that if a machine behaves indistinguishably from a human in conversation, it must be considered 'intelligent.' It judges intelligence entirely on external output." },
+            { icon: "💻", title: "Strong AI", text: "This gave rise to the concept of 'Strong AI'—the claim that an appropriately programmed computer doesn't just simulate a mind, it literally possesses one. The software is the mind." },
+            { icon: "🚪", title: "The Setup", text: "To challenge this, John Searle imagined locking a person who speaks only English inside a room. They are given alien glyphs and a thick rulebook written in English on how to respond to them. You are now that person." }
+        ];
+
+        const takeawayPhases = [
+            { icon: "📜", title: "The Reveal", text: "You successfully processed the inputs. The judges outside are convinced you are a conscious being. Here is what you just said:\n\nJudge: Are you a machine?\nYou: No, I am a living being.\nJudge: Prove you are conscious.\nYou: I think, therefore I am." },
+            { icon: "🧩", title: "Syntax vs. Semantics", text: "You passed the test. But did you understand a single word you just 'said'? No. You were merely manipulating Syntax (formal symbols) based on rules. You lacked Semantics (actual meaning and understanding)." },
+            { icon: "⚙️", title: "Searle's Conclusion", text: "Searle argues that a computer is exactly like you in that room. It blindly shuffles symbols according to code. Because computers operate purely on syntax, running a program—no matter how complex—is not enough to create true consciousness." }
+        ];
+
+        const glyphs = ['⍙', '⎍', '⏣', '⍾', '⍝', '⎈', '⎇', '⌹'];
+        
+        // Expanded rulebook for significantly more variety
+        const rules = [
+            {in: '⍙', out: '⍾'}, 
+            {in: '⎍', out: '⍝'}, 
+            {in: '⏣', out: '⎈'},
+            {in: '⍾', out: '⌹'},
+            {in: '⍝', out: '⎇'},
+            {in: '⍙ ⎍', out: '⍾ ⍝'}, 
+            {in: '⎍ ⏣', out: '⍝ ⎈'}, 
+            {in: '⎈ ⍙', out: '⏣ ⍾'},
+            {in: '⍝ ⌹', out: '⎇ ⍙'},
+            {in: '⍾ ⏣', out: '⎈ ⍙'},
+            {in: '⌹ ⍙ ⎍', out: '⎇ ⏣ ⍾'},
+            {in: '⎇ ⎈ ⍾', out: '⍙ ⌹ ⍝'},
+            {in: '⍾ ⏣ ⎍', out: '⎈ ⍙ ⎇'},
+            {in: '⍙ ⍙ ⏣', out: '⍾ ⍾ ⌹'},
+            {in: '⎍ ⎍ ⍝', out: '⏣ ⏣ ⎇'}
+        ];
+
+        // --- STATE VARIABLES ---
+        let currentNarrative = 0;
+        let currentTakeaway = 0;
+        let score = 0;
+        let timeLeft = 60;
+        let gameInterval = null;
+        let currentRule = null;
+        let outboxArray = [];
+
+        // --- UI ELEMENTS ---
+        const states = {
+            intro: document.getElementById('intro-state'),
+            narrative: document.getElementById('narrative-state'),
+            game: document.getElementById('game-state'),
+            takeaway: document.getElementById('takeaway-state'),
+            conclusion: document.getElementById('conclusion-state')
+        };
+
+        function switchState(stateName) {
+            Object.values(states).forEach(el => el.classList.remove('active-state'));
+            states[stateName].classList.add('active-state');
+        }
+
+        // --- NARRATIVE LOGIC ---
+        function startNarrative() {
+            currentNarrative = 0;
+            updateNarrativeUI();
+            switchState('narrative');
+        }
+
+        function updateNarrativeUI() {
+            const phase = narrativePhases[currentNarrative];
+            document.getElementById('narrative-visual').innerText = phase.icon;
+            document.getElementById('narrative-title').innerText = phase.title;
+            document.getElementById('narrative-text').innerText = phase.text;
+            
+            const btn = document.getElementById('narrative-btn');
+            if (currentNarrative === narrativePhases.length - 1) {
+                btn.innerText = "Enter the Room";
+            } else {
+                btn.innerText = "Continue";
+            }
+        }
+
+        function nextNarrative() {
+            currentNarrative++;
+            if (currentNarrative < narrativePhases.length) {
+                updateNarrativeUI();
+            } else {
+                startGame();
+            }
+        }
+
+        // --- GAME LOGIC ---
+        function startGame() {
+            score = 0;
+            timeLeft = 60;
+            outboxArray = [];
+            currentRule = null; // Reset rule tracking
+            document.getElementById('score-display').innerText = score;
+            document.getElementById('timer-display').innerText = timeLeft;
+            
+            // Build Rulebook
+            const rb = document.getElementById('rulebook-display');
+            rb.innerHTML = '';
+            rules.forEach(r => {
+                rb.innerHTML += `<div>IF INPUT IS <strong>[ ${r.in} ]</strong><br>OUTPUT <strong>[ ${r.out} ]</strong></div><br>`;
+            });
+
+            // Build Keypad
+            const kp = document.getElementById('keypad-container');
+            kp.innerHTML = '';
+            glyphs.forEach(g => {
+                const btn = document.createElement('button');
+                btn.innerText = g;
+                btn.onclick = () => addToOutbox(g);
+                kp.appendChild(btn);
+            });
+
+            loadNewTask();
+            switchState('game');
+            
+            gameInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer-display').innerText = timeLeft;
+                if (timeLeft <= 0) endGame();
+            }, 1000);
+        }
+
+        function loadNewTask() {
+            // Prevent immediate repetition of the same rule
+            let availableRules = rules.filter(r => r !== currentRule);
+            currentRule = availableRules[Math.floor(Math.random() * availableRules.length)];
+            
+            document.getElementById('inbox-display').innerText = currentRule.in;
+            clearOutbox();
+        }
+
+        function addToOutbox(glyph) {
+            outboxArray.push(glyph);
+            document.getElementById('outbox-display').innerText = outboxArray.join(' ');
+        }
+
+        function clearOutbox() {
+            outboxArray = [];
+            document.getElementById('outbox-display').innerText = '';
+        }
+
+        function showNotification(msg, isSuccess) {
+            const notif = document.getElementById('game-notification');
+            notif.innerText = msg;
+            notif.className = isSuccess ? 'notify-success' : 'notify-error';
+            notif.style.opacity = 1;
+            setTimeout(() => notif.style.opacity = 0, 800);
+        }
+
+        function sendOutput() {
+            const userOutput = outboxArray.join(' ');
+            if (userOutput === currentRule.out) {
+                score++;
+                document.getElementById('score-display').innerText = score;
+                showNotification("SUCCESS", true);
+                loadNewTask();
+            } else {
+                showNotification("SYNTAX ERROR", false);
+                clearOutbox();
+            }
+        }
+
+        function endGame() {
+            clearInterval(gameInterval);
+            startTakeaway();
+        }
+
+        // --- TAKEAWAY LOGIC ---
+        function startTakeaway() {
+            currentTakeaway = 0;
+            updateTakeawayUI();
+            switchState('takeaway');
+        }
+
+        function updateTakeawayUI() {
+            const phase = takeawayPhases[currentTakeaway];
+            document.getElementById('takeaway-visual').innerText = phase.icon;
+            document.getElementById('takeaway-title').innerText = phase.title;
+            // Use innerHTML to respect the \n line breaks in the text string
+            document.getElementById('takeaway-text').innerHTML = phase.text.replace(/\n/g, '<br>');
+            
+            const btn = document.getElementById('takeaway-btn');
+            if (currentTakeaway === takeawayPhases.length - 1) {
+                btn.innerText = "Conclude";
+            } else {
+                btn.innerText = "Continue";
+            }
+        }
+
+        function nextTakeaway() {
+            currentTakeaway++;
+            if (currentTakeaway < takeawayPhases.length) {
+                updateTakeawayUI();
+            } else {
+                showConclusion();
+            }
+        }
+
+        // --- CONCLUSION LOGIC ---
+        function showConclusion() {
+            switchState('conclusion');
+        }
+
+        function resetToGame() {
+            startGame();
+        }
+    </script>
+</body>
+</html>
