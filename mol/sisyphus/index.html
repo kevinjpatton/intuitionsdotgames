@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Absurd Trek: Complete Lesson</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #1a1a24;
+            --panel-bg: #2a2a36;
+            --text-main: #f0f0f5;
+            --text-muted: #a0a0b0;
+            --accent: #ff8c42;
+            --accent-hover: #ff701a;
+            --ui-bg: rgba(20, 20, 30, 0.85);
+        }
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: var(--bg-color); color: var(--text-main);
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            overflow: hidden; touch-action: none;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        /* 3D Canvas Container */
+        #canvas-container {
+            display: none; 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1;
+        }
+
+        /* Warning Overlay for slipping */
+        #slip-warning {
+            display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            box-shadow: inset 0 0 150px rgba(255, 0, 0, 0);
+            transition: box-shadow 0.2s; z-index: 5; pointer-events: none;
+        }
+        .slipping #slip-warning { box-shadow: inset 0 0 150px rgba(255, 0, 0, 0.6); }
+
+        /* Voice of the Gods UI */
+        #gods-voice {
+            display: none; position: absolute; top: 15%; width: 100%; text-align: center;
+            font-size: 2rem; font-weight: bold; letter-spacing: 3px;
+            color: rgba(255, 255, 255, 0.6); text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+            opacity: 0; transition: opacity 1.5s ease-in-out; z-index: 10; pointer-events: none;
+        }
+        /* When slipping, the text becomes aggressive, red, and persistent */
+        .slipping #gods-voice {
+            color: #ff4444; text-shadow: 0 0 30px #ff0000;
+            opacity: 1 !important; transition: none;
+        }
+
+        /* State Containers */
+        .state-container {
+            display: none; width: 100%; height: 100%;
+            flex-direction: column; justify-content: center; align-items: center;
+            text-align: center; padding: 20px; box-sizing: border-box; z-index: 10;
+            background-color: var(--bg-color); 
+        }
+        .active-state { display: flex; animation: fadeIn 0.5s ease-in-out; }
+
+        /* Special background for the active game UI */
+        #game-state.active-state { background-color: transparent; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Typography & UI Elements */
+        h1 { font-size: 2.5rem; margin-bottom: 10px; }
+        p { font-size: 1.2rem; max-width: 600px; line-height: 1.6; color: var(--text-muted); margin-bottom: 30px; }
+        
+        .panel {
+            background-color: var(--panel-bg); padding: 40px;
+            border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            max-width: 800px; width: 90%; z-index: 20;
+        }
+
+        button {
+            background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+            color: white; border: none; padding: 15px 40px;
+            font-size: 1.2rem; font-weight: bold; border-radius: 50px;
+            cursor: pointer; box-shadow: 0 5px 15px rgba(255, 140, 66, 0.4);
+            transition: transform 0.1s, box-shadow 0.1s;
+            user-select: none; -webkit-tap-highlight-color: transparent;
+        }
+        button:active { transform: scale(0.95); box-shadow: 0 2px 5px rgba(255, 140, 66, 0.4); }
+        button:disabled { background: #555; box-shadow: none; cursor: not-allowed; transform: none; filter: grayscale(100%); }
+
+        /* Narrative Visuals */
+        .visual-block {
+            background: rgba(0,0,0,0.4); width: 100%; height: 250px;
+            border-radius: 12px; display: flex; justify-content: center; align-items: center;
+            margin-bottom: 20px; border: 2px dashed #444; overflow: hidden;
+        }
+        .visual-block img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 10px; }
+
+        /* Game UI */
+        #game-ui-top {
+            position: absolute; top: 0; left: 0; width: 100%;
+            display: flex; justify-content: space-between; padding: 20px 40px;
+            box-sizing: border-box; font-size: 2.5rem; font-weight: bold;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.8); pointer-events: none;
+        }
+        #timer-display { color: var(--accent); }
+        
+        #game-controls {
+            position: absolute; bottom: 10%; width: 100%;
+            display: flex; justify-content: center; pointer-events: auto;
+        }
+        #push-btn { padding: 25px 80px; font-size: 2rem; border-radius: 12px; }
+
+    </style>
+</head>
+<body>
+
+    <div id="canvas-container"></div>
+    <div id="slip-warning"></div>
+    <div id="gods-voice">OLYMPUS WATCHES YOU TOIL.</div>
+
+    <div id="intro-state" class="state-container active-state">
+        <div class="panel">
+            <h1>The Absurd Trek</h1>
+            <p>The gods condemned Sisyphus to an eternity of frustrating labor: he must push a massive boulder up a mountain, only to watch it roll back down the moment he nears the summit.</p>
+            <p>In 1942, philosopher Albert Camus used this myth to describe <strong>The Absurd</strong>—the human condition of searching for absolute meaning in a silent, meaningless universe. Camus argued we must not despair. We must find our own defiant purpose in the struggle itself.</p>
+            <button onclick="startNarrative()">Begin the Myth</button>
+        </div>
+    </div>
+
+    <div id="narrative-state" class="state-container">
+        <div class="panel">
+            <div id="narrative-visual" class="visual-block"></div>
+            <h2 id="narrative-title">Phase Title</h2>
+            <p id="narrative-text">Phase Text</p>
+            <button id="narrative-btn" onclick="nextNarrative()">Continue the Myth</button>
+        </div>
+    </div>
+
+    <div id="game-state" class="state-container">
+        <div id="game-ui-top">
+            <div>Score: <span id="score-display">0</span></div>
+            <div id="timer-display">60.0s</div>
+        </div>
+        <div id="game-controls">
+            <button id="push-btn">PUSH</button>
+        </div>
+    </div>
+
+    <div id="takeaway-state" class="state-container">
+        <div class="panel">
+            <div id="takeaway-visual" class="visual-block"></div>
+            <h2 id="takeaway-title">Phase Title</h2>
+            <p id="takeaway-text">Phase Text</p>
+            <button id="takeaway-btn" onclick="nextTakeaway()">Continue the Takeaway</button>
+        </div>
+    </div>
+
+    <div id="conclusion-state" class="state-container">
+        <div class="panel">
+            <h1>Your Endless Journey: <span id="final-score" style="color: var(--accent);">0</span></h1>
+            <p id="conclusion-quote" style="font-size: 1.5rem; font-style: italic; color: #fff; margin: 40px 0;">"One must imagine Sisyphus happy."</p>
+            <button onclick="resetToGame()">Embrace the Absurd & Begin Again</button>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA ---
+        const narrativePhases = [
+            { image: "images/sisyphus-1.jpg", title: "Tricking Death", text: "Before his punishment, Sisyphus was a clever mortal who managed to chain up Hades himself, temporarily halting death across the world." },
+            { image: "images/sisyphus-2.jpg", title: "The Judgment", text: "The gods, furious at his defiance of the natural order, devised a punishment perfectly suited to break a clever mind: an eternity of futile labor." },
+            { image: "images/sisyphus-3.jpg", title: "The Ascent", text: "He strains with all his might, bracing his body against the massive rock, slowly pushing it up the steep slopes of the underworld." },
+            { image: "images/sisyphus-4.jpg", title: "The Inevitable Fall", text: "Just as he reaches the peak, the rock slips. He watches it roll all the way back to the bottom. The labor must begin again. You have heard the story. Now, the struggle is yours." }
+        ];
+
+        const takeawayPhases = [
+            { image: "images/takeaway-1.jpg", title: "The Absurd", text: "Your timer ran out. The peak did not get closer. The universe did not reward your effort. This is The Absurd: the conflict between your desire for a goal and the reality that the goal is impossible." },
+            { image: "images/takeaway-2.jpg", title: "Rebellion", text: "But the game is not over. Camus argued that when Sisyphus walks back down the mountain, fully conscious of his futile fate, he is superior to his punishment. He rebels simply by enduring." },
+            { image: "images/takeaway-3.jpg", title: "Happiness in the Struggle", text: "Freedom comes when you stop hoping for the peak and start finding meaning in the physical act of pushing. The struggle itself toward the heights is enough to fill a man's heart." }
+        ];
+
+        const quotes = [
+            "One must imagine Sisyphus happy.",
+            "The struggle itself toward the heights is enough to fill a man's heart.",
+            "His fate belongs to him. His rock is his thing.",
+            "There is no sun without shadow, and it is essential to know the night."
+        ];
+
+        const godMessages = [
+            "YOUR HUBRIS DEMANDS THIS.", 
+            "OLYMPUS WATCHES YOU TOIL.", 
+            "HADES WILL NOT BE CHEATED.", 
+            "MORTAL ARROGANCE, ETERNAL LABOR.", 
+            "ZEUS DECREES YOU PUSH.", 
+            "THE FATES SPUN THIS THREAD."
+        ];
+
+        const slipMessages = [
+            "TARTARUS CLAIMS YOUR PROGRESS.", 
+            "A FOOLISH MORTAL STUMBLES.", 
+            "THE UNDERWORLD LAUGHS.", 
+            "GRAVITY IS A DECREE OF THE GODS."
+        ];
+
+        // --- GAME STATE VARIABLES ---
+        let currentNarrative = 0;
+        let currentTakeaway = 0;
+        
+        let gameState = {
+            score: 0,
+            timeLeft: 60.0,
+            idleTime: 2.0,
+            isPlaying: false,
+            isSlipping: false
+        };
+
+        let godMessageTimer = 2.0;
+
+        // --- UI ELEMENTS ---
+        const states = {
+            intro: document.getElementById('intro-state'),
+            narrative: document.getElementById('narrative-state'),
+            game: document.getElementById('game-state'),
+            takeaway: document.getElementById('takeaway-state'),
+            conclusion: document.getElementById('conclusion-state')
+        };
+        
+        const canvasContainer = document.getElementById('canvas-container');
+        const slipWarning = document.getElementById('slip-warning');
+        const godsVoice = document.getElementById('gods-voice');
+        const uiScore = document.getElementById('score-display');
+        const uiTimer = document.getElementById('timer-display');
+        const btnPush = document.getElementById('push-btn');
+        const bodyEl = document.body;
+
+        function switchState(stateName) {
+            Object.values(states).forEach(el => el.classList.remove('active-state'));
+            states[stateName].classList.add('active-state');
+        }
+
+        // --- NARRATIVE LOGIC ---
+        function startNarrative() {
+            currentNarrative = 0;
+            updateNarrativeUI();
+            switchState('narrative');
+        }
+
+        function updateNarrativeUI() {
+            const phase = narrativePhases[currentNarrative];
+            document.getElementById('narrative-visual').innerHTML = `<img src="${phase.image}" alt="${phase.title}">`;
+            document.getElementById('narrative-title').innerText = phase.title;
+            document.getElementById('narrative-text').innerText = phase.text;
+            
+            const btn = document.getElementById('narrative-btn');
+            if (currentNarrative === narrativePhases.length - 1) {
+                btn.innerText = "Accept the Challenge";
+            } else {
+                btn.innerText = "Continue the Myth";
+            }
+        }
+
+        function nextNarrative() {
+            currentNarrative++;
+            if (currentNarrative < narrativePhases.length) {
+                updateNarrativeUI();
+            } else {
+                startGame();
+            }
+        }
+
+        // --- GAME LOGIC ---
+        function startGame() {
+            gameState.score = 0;
+            gameState.timeLeft = 60.0;
+            gameState.idleTime = 2.0;
+            gameState.isPlaying = true;
+            gameState.isSlipping = false;
+            godMessageTimer = 2.0;
+            
+            uiScore.innerText = "0";
+            uiTimer.innerText = "60.0s";
+            btnPush.disabled = false;
+            bodyEl.classList.remove('slipping');
+            godsVoice.style.opacity = "0";
+            
+            // Show 3D scene and overlays
+            canvasContainer.style.display = 'block';
+            slipWarning.style.display = 'block';
+            godsVoice.style.display = 'block';
+            
+            switchState('game');
+        }
+
+        function triggerEndState() {
+            gameState.isPlaying = false;
+            btnPush.disabled = true;
+            godsVoice.style.opacity = "0";
+            
+            // Hide 3D scene for takeaway
+            setTimeout(() => {
+                canvasContainer.style.display = 'none';
+                slipWarning.style.display = 'none';
+                godsVoice.style.display = 'none';
+                startTakeaway();
+            }, 1500); 
+        }
+
+        // --- TAKEAWAY LOGIC ---
+        function startTakeaway() {
+            currentTakeaway = 0;
+            updateTakeawayUI();
+            switchState('takeaway');
+        }
+
+        function updateTakeawayUI() {
+            const phase = takeawayPhases[currentTakeaway];
+            document.getElementById('takeaway-visual').innerHTML = `<img src="${phase.image}" alt="${phase.title}">`;
+            document.getElementById('takeaway-title').innerText = phase.title;
+            document.getElementById('takeaway-text').innerText = phase.text;
+        }
+
+        function nextTakeaway() {
+            currentTakeaway++;
+            if (currentTakeaway < takeawayPhases.length) {
+                updateTakeawayUI();
+            } else {
+                showConclusion();
+            }
+        }
+
+        // --- CONCLUSION LOGIC ---
+        function showConclusion() {
+            document.getElementById('final-score').innerText = Math.floor(gameState.score);
+            const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+            document.getElementById('conclusion-quote').innerText = `"${randomQuote}"`;
+            switchState('conclusion');
+        }
+
+        function resetToGame() {
+            startGame();
+        }
+
+        // --- THREE.JS SCENE SETUP ---
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x1a1a24);
+        scene.fog = new THREE.FogExp2(0x1a1a24, 0.03);
+
+        const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.set(0, 1.5, 5);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        canvasContainer.appendChild(renderer.domElement);
+
+        const ambientLight = new THREE.AmbientLight(0x404040, 1.5);
+        scene.add(ambientLight);
+        const dirLight = new THREE.DirectionalLight(0xffddaa, 1);
+        dirLight.position.set(5, 10, -5);
+        scene.add(dirLight);
+
+        const gridHelper = new THREE.GridHelper(100, 100, 0x555555, 0x333333);
+        gridHelper.position.set(0, -1, -20);
+        gridHelper.rotation.x = Math.PI / 6;
+        scene.add(gridHelper);
+
+        const peakGeo = new THREE.ConeGeometry(20, 40, 4);
+        const peakMat = new THREE.MeshBasicMaterial({ color: 0x0a0a10 });
+        const peak = new THREE.Mesh(peakGeo, peakMat);
+        peak.position.set(0, 5, -40);
+        scene.add(peak);
+
+        const boulderGeo = new THREE.DodecahedronGeometry(2.5, 2);
+        const boulderMat = new THREE.MeshStandardMaterial({ color: 0x555555, roughness: 0.9, flatShading: true });
+        const boulder = new THREE.Mesh(boulderGeo, boulderMat);
+        boulder.position.set(0, 0.5, 0);
+        scene.add(boulder);
+
+        const handGeo = new THREE.BoxGeometry(0.6, 0.4, 1.2);
+        const handMat = new THREE.MeshStandardMaterial({ color: 0xcc8855 });
+        
+        const leftHand = new THREE.Mesh(handGeo, handMat);
+        leftHand.position.set(-1.2, -0.2, 3);
+        leftHand.rotation.y = Math.PI / 8;
+        
+        const rightHand = new THREE.Mesh(handGeo, handMat);
+        rightHand.position.set(1.2, -0.2, 3);
+        rightHand.rotation.y = -Math.PI / 8;
+        
+        scene.add(leftHand, rightHand);
+
+        let targetHandZ = 3;
+        let cameraShakeY = 1.5;
+
+        // --- GAME INTERACTION LOGIC ---
+        btnPush.addEventListener('mousedown', pushAction);
+        btnPush.addEventListener('touchstart', (e) => { e.preventDefault(); pushAction(); }, {passive: false});
+
+        function pushAction() {
+            if (!gameState.isPlaying) return;
+
+            gameState.score++;
+            uiScore.innerText = Math.floor(gameState.score);
+            gameState.idleTime = 2.0;
+            
+            if (gameState.isSlipping) {
+                gameState.isSlipping = false;
+                bodyEl.classList.remove('slipping');
+                godsVoice.style.opacity = "0"; // Instantly hide the red slip text
+                godMessageTimer = 3.0; // Give a brief pause before normal gods speak again
+            }
+
+            // 3D Visuals
+            boulder.rotation.x -= 0.3;
+            gridHelper.position.z += 0.5;
+            if (gridHelper.position.z > -19) gridHelper.position.z = -20;
+
+            targetHandZ = 1.8;
+            setTimeout(() => { targetHandZ = 3; }, 100);
+            cameraShakeY = 1.3;
+            setTimeout(() => { cameraShakeY = 1.5; }, 100);
+        }
+
+        // --- RENDER LOOP ---
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = clock.getDelta();
+
+            if (gameState.isPlaying) {
+                // Doom Clock
+                gameState.timeLeft -= delta;
+                if (gameState.timeLeft <= 0) {
+                    gameState.timeLeft = 0;
+                    triggerEndState();
+                }
+                uiTimer.innerText = gameState.timeLeft.toFixed(1) + "s";
+
+                // Idle Timer & Slip Mechanic
+                gameState.idleTime -= delta;
+                if (gameState.idleTime <= 0) {
+                    if (!gameState.isSlipping) {
+                        // Trigger slip state
+                        gameState.isSlipping = true;
+                        bodyEl.classList.add('slipping');
+                        const randomSlipMsg = slipMessages[Math.floor(Math.random() * slipMessages.length)];
+                        godsVoice.innerText = randomSlipMsg;
+                    }
+                    
+                    gameState.score -= 5 * delta;
+                    uiScore.innerText = Math.floor(gameState.score);
+
+                    boulder.rotation.x += 1.5 * delta;
+                    gridHelper.position.z -= 2.5 * delta;
+                    if (gridHelper.position.z < -21) gridHelper.position.z = -20;
+                } else {
+                    // Normal Pushing State - Gods Voice Cycling
+                    godMessageTimer -= delta;
+                    if (godMessageTimer <= 0) {
+                        const randomGodMsg = godMessages[Math.floor(Math.random() * godMessages.length)];
+                        godsVoice.innerText = randomGodMsg;
+                        godsVoice.style.opacity = "1";
+                        godMessageTimer = 6.0; // Message cycle time
+                        
+                        // Fade out after 3 seconds if not slipping
+                        setTimeout(() => { 
+                            if(!gameState.isSlipping && gameState.isPlaying) godsVoice.style.opacity = "0"; 
+                        }, 3000);
+                    }
+                }
+
+                // Smooth Animation Lerping
+                leftHand.position.z += (targetHandZ - leftHand.position.z) * 10 * delta;
+                rightHand.position.z += (targetHandZ - rightHand.position.z) * 10 * delta;
+                camera.position.y += (cameraShakeY - camera.position.y) * 15 * delta;
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        animate();
+    </script>
+</body>
+</html>
