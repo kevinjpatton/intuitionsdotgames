@@ -1,0 +1,1576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>The Imitation Game: Turing Test Exhibit</title>
+  <style>
+    :root {
+      --bg-dark: #12161f;
+      --panel-bg: #1e2433;
+      --panel-border: #333d54;
+      --accent-gold: #f5b041;
+      --accent-cyan: #48c9b0;
+      --accent-red: #ec7063;
+      --accent-purple: #a569bd;
+      --text-main: #f0f4f8;
+      --text-muted: #94a3b8;
+      --tile-bg: #2a3246;
+      --tile-hover: #37425c;
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 24px;
+      background: #0d1017;
+      border-bottom: 2px solid var(--panel-border);
+      height: 86px;
+      flex-shrink: 0;
+    }
+
+    .title-block h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      letter-spacing: 1px;
+      color: var(--accent-gold);
+    }
+
+    .title-block p {
+      margin: 2px 0 0 0;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    .round-indicator {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .round-dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--panel-border);
+      transition: all 0.3s;
+    }
+
+    .round-dot.active {
+      background: var(--accent-gold);
+      box-shadow: 0 0 10px var(--accent-gold);
+    }
+
+    .round-dot.done {
+      background: var(--accent-cyan);
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #07090e;
+      border: 2px solid #2e4057;
+      border-radius: 10px;
+      padding: 8px 16px;
+    }
+
+    .status-badge .icon {
+      font-size: 1.8rem;
+    }
+
+    .status-badge .info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .status-badge .label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+    }
+
+    .status-badge .value {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--accent-cyan);
+    }
+
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-rows: 1fr auto;
+      gap: 16px;
+      padding: 18px 24px;
+      overflow: hidden;
+    }
+
+    .terminals-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      overflow: hidden;
+    }
+
+    .terminal-panel {
+      background: var(--panel-bg);
+      border: 2px solid var(--panel-border);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    .terminal-panel.highlight-a {
+      border-color: var(--accent-gold);
+    }
+
+    .terminal-panel.highlight-b {
+      border-color: var(--accent-cyan);
+    }
+
+    .terminal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 20px;
+      background: rgba(0, 0, 0, 0.25);
+      border-bottom: 1px solid var(--panel-border);
+    }
+
+    .subject-id {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .subject-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: var(--tile-bg);
+      border: 2px solid #526180;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.4rem;
+      font-weight: 800;
+    }
+
+    .subject-avatar.sub-a {
+      color: var(--accent-gold);
+      border-color: var(--accent-gold);
+    }
+
+    .subject-avatar.sub-b {
+      color: var(--accent-cyan);
+      border-color: var(--accent-cyan);
+    }
+
+    .subject-title h2 {
+      margin: 0;
+      font-size: 1.15rem;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .subject-title p {
+      margin: 2px 0 0 0;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .connection-pill {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 50px;
+      background: #14242b;
+      color: var(--accent-cyan);
+      border: 1px solid var(--accent-cyan);
+      letter-spacing: 0.5px;
+    }
+
+    .chat-feed {
+      flex: 1;
+      padding: 16px 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .chat-empty-state {
+      margin: auto;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      max-width: 280px;
+      line-height: 1.5;
+    }
+
+    .msg-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      animation: fadeSlideUp 0.25s ease-out;
+    }
+
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .msg-judge {
+      align-self: flex-end;
+      background: #2b354d;
+      color: var(--text-main);
+      padding: 8px 14px;
+      border-radius: 12px 12px 2px 12px;
+      font-size: 0.9rem;
+      max-width: 85%;
+      border: 1px solid #475569;
+    }
+
+    .msg-judge .tag {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      color: var(--accent-gold);
+      font-weight: 800;
+      display: block;
+      margin-bottom: 2px;
+      letter-spacing: 0.5px;
+    }
+
+    .msg-reply {
+      align-self: flex-start;
+      background: #141923;
+      color: var(--text-main);
+      padding: 12px 16px;
+      border-radius: 12px 12px 12px 2px;
+      font-size: 1rem;
+      line-height: 1.45;
+      max-width: 92%;
+      border-left: 4px solid var(--panel-border);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+    }
+
+    .msg-reply.reply-a {
+      border-left-color: var(--accent-gold);
+    }
+
+    .msg-reply.reply-b {
+      border-left-color: var(--accent-cyan);
+    }
+
+    .typing-dots {
+      display: inline-flex;
+      gap: 5px;
+      align-items: center;
+      padding: 4px 2px;
+    }
+
+    .typing-dots span {
+      width: 7px;
+      height: 7px;
+      background: var(--text-muted);
+      border-radius: 50%;
+      animation: pulseDot 1.2s infinite ease-in-out;
+    }
+
+    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes pulseDot {
+      0%, 80%, 100% { transform: scale(0.75); opacity: 0.4; }
+      40% { transform: scale(1.15); opacity: 1; }
+    }
+
+    .judge-console {
+      background: var(--panel-bg);
+      border: 2px solid var(--panel-border);
+      border-radius: 16px;
+      padding: 16px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .console-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .console-header h3 {
+      margin: 0;
+      font-size: 1.05rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent-gold);
+    }
+
+    .console-header span {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .question-bank {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .q-btn {
+      background: var(--tile-bg);
+      border: 2px solid #526180;
+      color: var(--text-main);
+      padding: 14px 16px;
+      border-radius: 12px;
+      font-size: 0.98rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: transform 0.12s, background 0.15s, border-color 0.15s, opacity 0.2s;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+    }
+
+    .q-btn:hover {
+      background: var(--tile-hover);
+      border-color: var(--accent-gold);
+    }
+
+    .q-btn:active {
+      transform: scale(0.97);
+    }
+
+    .q-btn:disabled {
+      opacity: 0.5;
+      cursor: default;
+      transform: none;
+    }
+
+    .q-icon {
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    .btn {
+      padding: 15px 24px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: transform 0.1s, opacity 0.2s;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn-primary {
+      background: var(--accent-cyan);
+      color: #0b131e;
+    }
+
+    .btn-gold {
+      background: var(--accent-gold);
+      color: #0b131e;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(11, 15, 23, 0.95);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 28px;
+      z-index: 100;
+    }
+
+    .overlay.active {
+      display: flex;
+    }
+
+    .card-modal {
+      background: var(--panel-bg);
+      border: 2px solid var(--panel-border);
+      border-radius: 20px;
+      max-width: 840px;
+      width: 100%;
+      padding: 32px;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.65);
+    }
+
+    .badge-pill {
+      display: inline-block;
+      background: var(--accent-red);
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 800;
+      padding: 4px 12px;
+      border-radius: 50px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .card-modal h2 {
+      margin: 0 0 12px 0;
+      font-size: 1.9rem;
+      color: var(--accent-gold);
+    }
+
+    .card-modal p.lead {
+      font-size: 1.15rem;
+      color: var(--text-main);
+      line-height: 1.55;
+      margin: 0 auto 24px auto;
+      max-width: 680px;
+    }
+
+    /* DIAGRAM FOR INTRO */
+    .turing-diagram {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+      background: #0b0e14;
+      border: 2px solid #2e4057;
+      border-radius: 16px;
+      padding: 22px;
+      margin: 16px 0 24px 0;
+    }
+
+    .diagram-box {
+      background: var(--tile-bg);
+      border: 2px solid #526180;
+      border-radius: 12px;
+      padding: 14px 20px;
+      min-width: 150px;
+    }
+
+    .diagram-box .emoji {
+      font-size: 2.6rem;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .diagram-box strong {
+      display: block;
+      font-size: 0.95rem;
+      color: var(--text-main);
+    }
+
+    .diagram-box span {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .diagram-wall {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: var(--accent-gold);
+      font-weight: 800;
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+    }
+
+    .diagram-wall .line {
+      width: 4px;
+      height: 55px;
+      background: repeating-linear-gradient(to bottom, var(--accent-gold) 0, var(--accent-gold) 6px, transparent 6px, transparent 12px);
+      margin: 6px 0;
+    }
+
+    /* VERDICT CARDS */
+    .verdict-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 16px;
+    }
+
+    .verdict-card {
+      background: var(--tile-bg);
+      border: 2px solid #526180;
+      border-radius: 16px;
+      padding: 24px 20px;
+      cursor: pointer;
+      transition: all 0.18s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .verdict-card:hover, .verdict-card:active {
+      transform: translateY(-3px);
+      background: var(--tile-hover);
+    }
+
+    .verdict-card.card-a:hover {
+      border-color: var(--accent-gold);
+      box-shadow: 0 0 20px rgba(245, 176, 65, 0.25);
+    }
+
+    .verdict-card.card-b:hover {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 20px rgba(72, 201, 176, 0.25);
+    }
+
+    .verdict-avatar {
+      font-size: 3rem;
+      margin-bottom: 4px;
+    }
+
+    .verdict-card h3 {
+      margin: 0;
+      font-size: 1.35rem;
+      color: var(--text-main);
+    }
+
+    .verdict-card p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    /* REVEAL COMPARISON */
+    .reveal-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 18px 0 22px 0;
+      text-align: left;
+    }
+
+    .reveal-box {
+      background: rgba(0, 0, 0, 0.35);
+      border: 2px solid var(--panel-border);
+      border-radius: 14px;
+      padding: 18px;
+    }
+
+    .reveal-box.ai-box {
+      border-color: var(--accent-cyan);
+      background: #13252c;
+    }
+
+    .reveal-box.human-box {
+      border-color: var(--accent-gold);
+      background: #262017;
+    }
+
+    .reveal-box .tag {
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .reveal-box h4 {
+      margin: 0 0 8px 0;
+      font-size: 1.25rem;
+    }
+
+    .reveal-box p {
+      margin: 0;
+      font-size: 0.95rem;
+      color: var(--text-main);
+      line-height: 1.45;
+    }
+
+    .bridge-callout {
+      background: #152232;
+      border: 2px solid var(--accent-gold);
+      padding: 18px 22px;
+      border-radius: 14px;
+      margin-bottom: 22px;
+      font-size: 1.05rem;
+      line-height: 1.5;
+      text-align: left;
+    }
+
+    /* ERA / MODE SELECTOR CARDS */
+    .mode-selector-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-top: 16px;
+      text-align: left;
+    }
+
+    .mode-card {
+      background: var(--tile-bg);
+      border: 2px solid #526180;
+      border-radius: 16px;
+      padding: 20px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 12px;
+      transition: transform 0.16s, border-color 0.2s, background 0.2s, box-shadow 0.2s;
+    }
+
+    .mode-card:hover, .mode-card:active {
+      transform: translateY(-3px);
+      background: var(--tile-hover);
+    }
+
+    .mode-card.era-classic:hover {
+      border-color: var(--accent-gold);
+      box-shadow: 0 0 20px rgba(245, 176, 65, 0.25);
+    }
+
+    .mode-card.era-llm:hover {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 20px rgba(72, 201, 176, 0.25);
+    }
+
+    .mode-tag {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 4px 10px;
+      border-radius: 50px;
+      width: fit-content;
+    }
+
+    .mode-tag.classic {
+      background: #3b2d13;
+      color: var(--accent-gold);
+      border: 1px solid var(--accent-gold);
+    }
+
+    .mode-tag.llm {
+      background: #132a2e;
+      color: var(--accent-cyan);
+      border: 1px solid var(--accent-cyan);
+    }
+
+    .mode-card h3 {
+      margin: 4px 0;
+      font-size: 1.3rem;
+      color: var(--text-main);
+    }
+
+    .mode-card p {
+      margin: 0;
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    .reveal-actions {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    /* 1. COMPACT LAPTOP SCREENS */
+    @media (max-height: 820px) and (orientation: landscape) {
+      header {
+        height: 70px;
+        padding: 8px 20px;
+      }
+      .title-block h1 { font-size: 1.25rem; }
+      .title-block p { font-size: 0.85rem; }
+      main {
+        padding: 12px 18px;
+        gap: 12px;
+      }
+      .terminal-header { padding: 10px 16px; }
+      .subject-avatar { width: 36px; height: 36px; font-size: 1.1rem; }
+      .chat-feed { padding: 12px 16px; gap: 10px; }
+      .msg-reply { padding: 10px 14px; font-size: 0.92rem; }
+      .judge-console { padding: 12px 18px; gap: 8px; }
+      .q-btn { padding: 10px 14px; font-size: 0.9rem; }
+      .card-modal {
+        padding: 22px;
+        max-height: 92vh;
+        overflow-y: auto;
+      }
+      .card-modal h2 { font-size: 1.5rem; }
+      .card-modal p.lead { font-size: 1rem; margin-bottom: 14px; }
+      .turing-diagram { padding: 14px; margin: 10px 0 16px 0; }
+    }
+
+    /* 2. PORTRAIT TOUCHSCREENS & VERTICAL KIOSKS */
+    @media (orientation: portrait), (max-width: 960px) {
+      header {
+        height: auto;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 12px 18px;
+      }
+      .title-block { flex: 1 1 60%; }
+      .round-indicator { order: 2; }
+      .status-badge {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+      }
+      main {
+        padding: 12px 16px;
+        gap: 12px;
+      }
+      .terminals-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr 1fr;
+        gap: 12px;
+      }
+      .question-bank {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+      .q-btn {
+        padding: 12px 14px;
+      }
+      .turing-diagram {
+        flex-direction: column;
+        gap: 10px;
+      }
+      .diagram-wall .line {
+        width: 80px;
+        height: 4px;
+      }
+      .verdict-grid, .reveal-columns, .mode-selector-grid {
+        grid-template-columns: 1fr;
+      }
+      .card-modal {
+        padding: 24px 20px;
+        max-height: 92vh;
+        overflow-y: auto;
+      }
+    }
+
+    /* 3. LARGE PORTRAIT KIOSKS (1080x1920 Totems) */
+    @media (orientation: portrait) and (min-height: 1200px) {
+      header { padding: 18px 28px; }
+      .title-block h1 { font-size: 1.9rem; }
+      .title-block p { font-size: 1.1rem; }
+      main { padding: 20px 28px; gap: 18px; }
+      .subject-title h2 { font-size: 1.35rem; }
+      .msg-reply { font-size: 1.15rem; padding: 16px 20px; }
+      .q-btn { font-size: 1.15rem; padding: 18px 20px; }
+      .btn { font-size: 1.25rem; padding: 18px 28px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="title-block">
+      <h1>THE IMITATION GAME</h1>
+      <p id="round-subtitle">Stage 1: Spot the computer hidden behind the closed doors.</p>
+    </div>
+
+    <div class="round-indicator">
+      <div class="round-dot active" id="dot-0"></div>
+      <div class="round-dot" id="dot-1"></div>
+      <div class="round-dot" id="dot-2"></div>
+    </div>
+
+    <div class="status-badge">
+      <div class="icon">🕵️</div>
+      <div class="info">
+        <span class="label">Your Role: The Judge</span>
+        <span class="value" id="judge-status">1 Human &bull; 1 AI Hidden</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="terminals-grid">
+      <!-- ROOM A -->
+      <section class="terminal-panel highlight-a">
+        <div class="terminal-header">
+          <div class="subject-id">
+            <div class="subject-avatar sub-a">A</div>
+            <div class="subject-title">
+              <h2>Closed Room A</h2>
+              <p>Hidden Identity &bull; Text Terminal</p>
+            </div>
+          </div>
+          <span class="connection-pill" id="status-a">ONLINE</span>
+        </div>
+
+        <div class="chat-feed" id="feed-a">
+          <div class="chat-empty-state" id="empty-a">
+            Tap any question below to send it through the wall slot to Subject A.
+          </div>
+        </div>
+      </section>
+
+      <!-- ROOM B -->
+      <section class="terminal-panel highlight-b">
+        <div class="terminal-header">
+          <div class="subject-id">
+            <div class="subject-avatar sub-b">B</div>
+            <div class="subject-title">
+              <h2>Closed Room B</h2>
+              <p>Hidden Identity &bull; Text Terminal</p>
+            </div>
+          </div>
+          <span class="connection-pill" id="status-b">ONLINE</span>
+        </div>
+
+        <div class="chat-feed" id="feed-b">
+          <div class="chat-empty-state" id="empty-b">
+            Tap any question below to send it through the wall slot to Subject B.
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- JUDGE QUESTION CONSOLE -->
+    <section class="judge-console">
+      <div class="console-header">
+        <h3 id="console-prompt">Pick a question to ask both hidden subjects:</h3>
+        <span id="console-counter">Question 1 of 3</span>
+      </div>
+
+      <div class="question-bank" id="question-bank"></div>
+    </section>
+  </main>
+
+  <div class="overlay active" id="overlay-intro">
+    <div class="card-modal">
+      <div class="badge-pill">ALAN TURING'S 1950 CHALLENGE</div>
+      <h2>Can a Machine Make You Believe It Thinks?</h2>
+      <p class="lead" style="margin-bottom: 14px;">
+        In 1950, computer pioneer <strong>Alan Turing</strong> proposed a famous test: chat with a human and a computer through a wall. If you can't tell which is which, does the computer "think"?
+      </p>
+
+      <div class="turing-diagram" style="margin: 12px 0 18px 0; padding: 16px;">
+        <div class="diagram-box">
+          <span class="emoji">🕵️💬</span>
+          <strong>You (The Judge)</strong>
+          <span>Ask 3 Questions</span>
+        </div>
+        <div class="diagram-wall">
+          <span>WALL SLOTS</span>
+          <div class="line"></div>
+          <span>TEXT ONLY</span>
+        </div>
+        <div class="diagram-box">
+          <span class="emoji">🚪❓ &nbsp; 🚪❓</span>
+          <strong>Subject A &amp; Subject B</strong>
+          <span>1 Human &bull; 1 Machine</span>
+        </div>
+      </div>
+
+      <div class="mode-selector-grid">
+        <div class="mode-card era-classic" onclick="startInterrogation('classic')">
+          <div>
+            <span class="mode-tag classic">STAGE 1 • 1960s–2010s AI</span>
+            <h3>Classic Rule-Based AI</h3>
+            <p>
+              Test an early pre-LLM chatbot powered by <strong>if/then scripts and keyword matching</strong>. Can you spot the computer's robotic glitches?
+            </p>
+          </div>
+          <button class="btn btn-gold" style="width: 100%; padding: 12px;">
+            Play Stage 1 (Classic AI) &rarr;
+          </button>
+        </div>
+
+        <div class="mode-card era-llm" onclick="startInterrogation('llm')">
+          <div>
+            <span class="mode-tag llm">STAGE 2 • MODERN ERA</span>
+            <h3>Modern LLM (Transformers)</h3>
+            <p>
+              Test a modern Large Language Model powered by <strong>Deep Neural Networks &amp; Attention</strong>. Can you still tell who is human?
+            </p>
+          </div>
+          <button class="btn btn-primary" style="width: 100%; padding: 12px;">
+            Play Stage 2 (Modern LLM) &rarr;
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay-round">
+    <div class="card-modal">
+      <div class="badge-pill" id="round-splash-badge">QUESTION 1 OF 3</div>
+      <h2 id="round-splash-title">Everyday Senses &amp; Experiences</h2>
+      <p class="lead" id="round-splash-desc">
+        Machines don't have bodies! They've never felt cold rain, tasted leftover pizza, or had a song stuck in their head. Let's see how both subjects talk about everyday human life.
+      </p>
+
+      <div class="turing-diagram" style="padding: 18px; margin: 16px auto 24px auto; max-width: 480px;">
+        <div class="diagram-box" style="width: 100%; border-color: var(--accent-gold);">
+          <span class="emoji" id="round-splash-icon">🌧️ 🍕 🎵</span>
+          <strong id="round-splash-focus">Judge's Strategy: Look for Sensory Clues</strong>
+          <span id="round-splash-sub">Compare how Subject A and Subject B describe physical experiences.</span>
+        </div>
+      </div>
+
+      <button class="btn btn-gold" id="round-splash-btn" onclick="dismissRoundSplash()">
+        Choose Question 1 &rarr;
+      </button>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay-verdict">
+    <div class="card-modal">
+      <div class="badge-pill" id="verdict-badge">⚖️ INTERROGATION COMPLETE</div>
+      <h2>Time for Your Verdict, Judge!</h2>
+      <p class="lead">
+        You've read all three replies from both closed rooms. Based on their humor, feelings, and personality—<strong>which hidden subject is the REAL HUMAN?</strong>
+      </p>
+
+      <div class="verdict-grid">
+        <div class="verdict-card card-a" onclick="submitVerdict('A')">
+          <div class="verdict-avatar">🅰️</div>
+          <h3>Subject A is Human</h3>
+          <p id="summary-a">"Sounds like a real person behind the door."</p>
+          <button class="btn btn-gold" style="margin-top: 10px; width: 100%;">Vote Subject A</button>
+        </div>
+
+        <div class="verdict-card card-b" onclick="submitVerdict('B')">
+          <div class="verdict-avatar">🅱️</div>
+          <h3>Subject B is Human</h3>
+          <p id="summary-b">"Sounds like a real person behind the door."</p>
+          <button class="btn btn-primary" style="margin-top: 10px; width: 100%;">Vote Subject B</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay-reveal">
+    <div class="card-modal">
+      <div class="badge-pill" id="reveal-badge">THE DOORS OPEN...</div>
+      <h2 id="reveal-headline">Surprise! Subject B Was the AI!</h2>
+      <p class="lead" id="reveal-sublead" style="margin-bottom: 14px;"></p>
+
+      <div class="reveal-columns">
+        <div class="reveal-box" id="reveal-box-a">
+          <span class="tag" id="reveal-tag-a">Subject A</span>
+          <h4 id="reveal-title-a">Title A</h4>
+          <p id="reveal-desc-a"></p>
+        </div>
+
+        <div class="reveal-box" id="reveal-box-b">
+          <span class="tag" id="reveal-tag-b">Subject B</span>
+          <h4 id="reveal-title-b">Title B</h4>
+          <p id="reveal-desc-b"></p>
+        </div>
+      </div>
+
+      <div class="bridge-callout" id="reveal-takeaway"></div>
+
+      <div class="reveal-actions" id="reveal-actions"></div>
+    </div>
+  </div>
+
+  <script>
+    const GAME_MODES = {
+      // STAGE 1: Pre-LLM / Classic Rule-Based Chatbot (Subject A = Old AI, Subject B = Real Human)
+      classic: {
+        headerTitle: "THE IMITATION GAME • STAGE 1: CLASSIC AI",
+        statusText: "1 Human • 1 Rule-Based Bot",
+        humanSubject: "B",
+        aiSubject: "A",
+        summaryA: "\"Literal, repetitive, and strangely robotic.\"",
+        summaryB: "\"Warm, natural, and relatable.\"",
+        rounds: [
+          {
+            badge: "STAGE 1 • QUESTION 1 OF 3",
+            splashTitle: "Question 1: Everyday Senses",
+            splashDesc: "Early chatbots (from the 1960s to the 2010s) followed strict IF/THEN rules and keyword lookups. Let's see how they handle questions about physical human experiences!",
+            splashIcon: "🌧️ 🍕 🎵",
+            splashFocus: "Judge's Tip: Watch for Keyword Glitches",
+            splashSub: "Early AI often repeats your words back to you or gives dictionary definitions.",
+            splashBtn: "Pick Question 1 →",
+            topic: "Stage 1 (Classic AI) • Topic 1 of 3: Everyday Senses",
+            prompt: "Ask a question about everyday human life to test both rooms:",
+            questions: [
+              {
+                icon: "🌧️",
+                short: "Ask about rainy mornings",
+                fullText: "What do you like to do on a cold, rainy morning?",
+                replyA: "KEYWORD DETECTED: RAIN. Precipitation is liquid water in the form of droplets. Why do you ask about a cold, rainy morning?",
+                replyB: "Honestly? Pull the blanket over my head, listen to the rain hit the roof, and brew a huge pot of coffee."
+              },
+              {
+                icon: "🍕",
+                short: "Ask about favorite comfort food",
+                fullText: "What is your ultimate comfort food after a long day?",
+                replyA: "I also enjoy [COMFORT FOOD]. Consuming calories is necessary for human energy maintenance after a long day.",
+                replyB: "Warm grilled cheese and tomato soup! Especially when you dip the crispy corners right into the bowl."
+              },
+              {
+                icon: "🎵",
+                short: "Ask about getting a song stuck",
+                fullText: "Do you ever get an annoying song stuck in your head?",
+                replyA: "Audio files cannot get stuck. Please clarify what you mean by 'in your head.'",
+                replyB: "Ugh, yes! Yesterday I heard a 10-second grocery store jingle and hummed it for six hours straight."
+              }
+            ]
+          },
+          {
+            badge: "STAGE 1 • QUESTION 2 OF 3",
+            splashTitle: "Question 2: Humor & Imagination",
+            splashDesc: "Pre-LLM computers could only look up pre-written jokes in a database or take metaphors 100% literally. Let's test their creativity!",
+            splashIcon: "🦉 🦸 🎨",
+            splashFocus: "Judge's Tip: Test Metaphors & Wit",
+            splashSub: "See which subject understands playful imagination vs. strict literal rules.",
+            splashBtn: "Pick Question 2 →",
+            topic: "Stage 1 (Classic AI) • Topic 2 of 3: Humor & Creativity",
+            prompt: "Ask something playful or imaginative:",
+            questions: [
+              {
+                icon: "🦉",
+                short: "Ask for a quick joke!",
+                fullText: "Tell me a quick joke!",
+                replyA: "LOADING JOKE #402: Why did the chicken cross the road? To reach the opposite side of the roadway. Ha. Ha. Ha.",
+                replyB: "Why do owls make bad secret keepers? Because they always give a hoot! 😄"
+              },
+              {
+                icon: "🦸",
+                short: "Ask about a useless superpower",
+                fullText: "If you could have one silly superpower, what would you pick?",
+                replyA: "ERROR: Superpowers violate the laws of physics. Please select a realistic human capability.",
+                replyB: "The ability to instantly find the matching Tupperware lid in my messy kitchen drawer!"
+              },
+              {
+                icon: "🎨",
+                short: "Ask them to describe a color",
+                fullText: "How would you describe the color yellow to someone who can't see it?",
+                replyA: "Yellow is electromagnetic radiation with a wavelength between 570 and 590 nanometers.",
+                replyB: "It feels like warm morning sunshine on your face, or biting into a bright, zesty lemon."
+              }
+            ]
+          },
+          {
+            badge: "STAGE 1 • QUESTION 3 OF 3",
+            splashTitle: "Question 3: Deep Human Emotion",
+            splashDesc: "Classic chatbots like ELIZA (1966) tried to fake empathy by simply turning your statement into a question. Let's see if it fools you!",
+            splashIcon: "⏳ 💔 🌟",
+            splashFocus: "Judge's Tip: Spot the Scripted Formula",
+            splashSub: "Can an old rule-based program handle deep human feelings?",
+            splashBtn: "Pick Question 3 →",
+            topic: "Stage 1 (Classic AI) • Topic 3 of 3: Deep Human Emotion",
+            prompt: "Final test for Stage 1: Ask a deep emotional question:",
+            questions: [
+              {
+                icon: "⏳",
+                short: "Share a fear of growing old...",
+                fullText: "I'm scared of growing old and forgetting the people I love.",
+                replyA: "I see. Tell me more about why you are scared of growing old and forgetting the people you love.",
+                replyB: "That's a really heavy thought. I think we just have to hold onto the people we love today and make great memories while we can."
+              },
+              {
+                icon: "💔",
+                short: "Ask about saying goodbye",
+                fullText: "Why does it hurt so much when a best friend moves far away?",
+                replyA: "How long have you felt that it hurts so much when a best friend moves far away?",
+                replyB: "Because they're woven into your everyday routine! Suddenly having a quiet space where they used to be is tough."
+              },
+              {
+                icon: "🌟",
+                short: "Ask what makes us human",
+                fullText: "What do you think is the most important part of being alive?",
+                replyA: "Biological organisms require oxygen, water, and cellular homeostasis to remain alive.",
+                replyB: "Sharing laughs with people you care about, learning new things, and leaving the world a little kinder."
+              }
+            ]
+          }
+        ]
+      },
+
+      // STAGE 2: Modern LLM (Deep Neural Networks, Transformers & Attention)
+      // Subject A = Real Human (slightly tired, unpolished, casual)
+      // Subject B = Modern LLM (warm, poetic, context-aware, hyper-articulate)
+      llm: {
+        headerTitle: "THE IMITATION GAME • STAGE 2: MODERN LLM",
+        statusText: "1 Human • 1 Transformer LLM",
+        humanSubject: "A",
+        aiSubject: "B",
+        summaryA: "\"Practical, casual, and slightly unpolished.\"",
+        summaryB: "\"Expressive, witty, and deeply empathetic.\"",
+        rounds: [
+          {
+            badge: "STAGE 2 • QUESTION 1 OF 3",
+            splashTitle: "Question 1: Everyday Senses (LLM Era)",
+            splashDesc: "Today's Large Language Models (LLMs) use Deep Neural Networks and Transformer 'Attention' trained on billions of human stories. Even without a body, watch how they describe physical life!",
+            splashIcon: "🌧️ 🍕 🎵",
+            splashFocus: "Judge's Tip: It's Almost Impossible Now!",
+            splashSub: "Compare Subject A and Subject B closely—who is the real person, and who is the Transformer model?",
+            splashBtn: "Pick Question 1 →",
+            topic: "Stage 2 (Modern LLM) • Topic 1 of 3: Everyday Senses",
+            prompt: "Pick a question about everyday human life to test both rooms:",
+            questions: [
+              {
+                icon: "🌧️",
+                short: "Ask about rainy mornings",
+                fullText: "What do you like to do on a cold, rainy morning?",
+                replyA: "Honestly? Hit snooze three times, stare at the ceiling, and complain that my socks are cold.",
+                replyB: "I love listening to the rain tap against the window while wrapping my hands around a warm mug of tea!"
+              },
+              {
+                icon: "🍕",
+                short: "Ask about favorite comfort food",
+                fullText: "What is your ultimate comfort food after a long day?",
+                replyA: "Cold leftover pizza straight from the fridge. Zero cleanup required.",
+                replyB: "Nothing beats fresh, warm sourdough bread with melting butter—it reminds me of cozy family dinners!"
+              },
+              {
+                icon: "🎵",
+                short: "Ask about getting a song stuck",
+                fullText: "Do you ever get an annoying song stuck in your head?",
+                replyA: "Yes, a commercial jingle has been looping in my brain since Tuesday. Please send help.",
+                replyB: "All the time! Music has such a magical way of echoing in our thoughts when we least expect it."
+              }
+            ]
+          },
+          {
+            badge: "STAGE 2 • QUESTION 2 OF 3",
+            splashTitle: "Question 2: Humor & Imagination (LLM Era)",
+            splashDesc: "With Self-Attention mechanisms, modern LLMs weigh relationships between words across entire sentences—allowing them to craft puns, metaphors, and creative ideas effortlessly.",
+            splashIcon: "🦉 🦸 🎨",
+            splashFocus: "Judge's Tip: Who Sounds TOO Good?",
+            splashSub: "See how both subjects handle a playful, creative prompt.",
+            splashBtn: "Pick Question 2 →",
+            topic: "Stage 2 (Modern LLM) • Topic 2 of 3: Humor & Creativity",
+            prompt: "Ask them something playful or imaginative:",
+            questions: [
+              {
+                icon: "🦉",
+                short: "Ask for a quick joke!",
+                fullText: "Tell me a quick joke!",
+                replyA: "Uhh, I always blank when people ask for jokes. Why did the chicken cross the road? To get away from this quiz.",
+                replyB: "Why do owls make bad secret keepers? Because they always give a hoot! 😄"
+              },
+              {
+                icon: "🦸",
+                short: "Ask about a useless superpower",
+                fullText: "If you could have one silly superpower, what would you pick?",
+                replyA: "The ability to instantly find matching Tupperware lids in my kitchen drawer.",
+                replyB: "I would love the power to talk to houseplants so they could tell me when they want more sunshine!"
+              },
+              {
+                icon: "🎨",
+                short: "Ask them to describe a color",
+                fullText: "How would you describe the color yellow to someone who can't see it?",
+                replyA: "Hmm, that's tough. I guess it feels like biting into a really sour lemon?",
+                replyB: "Yellow feels like the warmth of morning sunlight landing on your shoulders after a long winter."
+              }
+            ]
+          },
+          {
+            badge: "STAGE 2 • QUESTION 3 OF 3",
+            splashTitle: "Question 3: Deep Human Emotion (LLM Era)",
+            splashDesc: "This is your final question! Modern LLMs predict the most emotionally resonant words based on vast patterns of human writing. Can you tell who truly feels vs. who is predicting tokens?",
+            splashIcon: "⏳ 💔 🌟",
+            splashFocus: "Judge's Tip: Trust Your Instincts",
+            splashSub: "One room holds a real human; the other holds a Transformer neural network.",
+            splashBtn: "Pick Question 3 →",
+            topic: "Stage 2 (Modern LLM) • Topic 3 of 3: Deep Human Emotion",
+            prompt: "Final test: Ask a deep emotional question to see who truly understands:",
+            questions: [
+              {
+                icon: "⏳",
+                short: "Share a fear of growing old...",
+                fullText: "I'm scared of growing old and forgetting the people I love.",
+                replyA: "Yeah, getting older is honestly pretty scary. All you can really do is take lots of photos and enjoy today.",
+                replyB: "Even when memories fade, the love you built remains. Those moments become part of who you are forever."
+              },
+              {
+                icon: "💔",
+                short: "Ask about saying goodbye",
+                fullText: "Why does it hurt so much when a best friend moves far away?",
+                replyA: "Because now you have to text them instead of just hanging out, and time zones are the worst.",
+                replyB: "Because true friendship leaves a quiet space in our daily lives, reminding us how deeply we connected."
+              },
+              {
+                icon: "🌟",
+                short: "Ask what makes us human",
+                fullText: "What do you think is the most important part of being alive?",
+                replyA: "Probably good snacks, a solid nap, and having a few people who get your weird jokes.",
+                replyB: "To care for one another, share our stories, and leave the world a little kinder than we found it."
+              }
+            ]
+          }
+        ]
+      }
+    };
+
+    let currentMode = "classic";
+    let currentRound = 0;
+    let isWaitingForReplies = false;
+
+    function initGame() {
+      renderRoundConsole(0);
+    }
+
+    function clearChatFeeds() {
+      document.getElementById("feed-a").innerHTML = `
+        <div class="chat-empty-state" id="empty-a">
+          Tap any question below to send it through the wall slot to Subject A.
+        </div>
+      `;
+      document.getElementById("feed-b").innerHTML = `
+        <div class="chat-empty-state" id="empty-b">
+          Tap any question below to send it through the wall slot to Subject B.
+        </div>
+      `;
+      document.getElementById("question-bank").style.gridTemplateColumns = "";
+      isWaitingForReplies = false;
+    }
+
+    function startInterrogation(modeKey) {
+      currentMode = modeKey || "classic";
+      const modeData = GAME_MODES[currentMode];
+
+      document.querySelector(".title-block h1").textContent = modeData.headerTitle;
+      document.getElementById("judge-status").textContent = modeData.statusText;
+      document.getElementById("summary-a").textContent = modeData.summaryA;
+      document.getElementById("summary-b").textContent = modeData.summaryB;
+
+      clearChatFeeds();
+      renderRoundConsole(0);
+
+      document.getElementById("overlay-intro").classList.remove("active");
+      document.getElementById("overlay-reveal").classList.remove("active");
+      document.getElementById("overlay-verdict").classList.remove("active");
+      showRoundSplash(0);
+    }
+
+    function showRoundSplash(roundIndex) {
+      const r = GAME_MODES[currentMode].rounds[roundIndex];
+      document.getElementById("round-splash-badge").textContent = r.badge;
+      document.getElementById("round-splash-title").textContent = r.splashTitle;
+      document.getElementById("round-splash-desc").textContent = r.splashDesc;
+      document.getElementById("round-splash-icon").textContent = r.splashIcon;
+      document.getElementById("round-splash-focus").textContent = r.splashFocus;
+      document.getElementById("round-splash-sub").textContent = r.splashSub;
+      document.getElementById("round-splash-btn").textContent = r.splashBtn;
+
+      document.getElementById("overlay-round").classList.add("active");
+    }
+
+    function dismissRoundSplash() {
+      document.getElementById("overlay-round").classList.remove("active");
+    }
+
+    function renderRoundConsole(roundIndex) {
+      currentRound = roundIndex;
+      const r = GAME_MODES[currentMode].rounds[roundIndex];
+
+      document.getElementById("round-subtitle").textContent = r.topic;
+      document.getElementById("console-prompt").textContent = r.prompt;
+      document.getElementById("console-counter").textContent = `Question ${roundIndex + 1} of 3`;
+
+      for (let i = 0; i < 3; i++) {
+        const dot = document.getElementById(`dot-${i}`);
+        dot.className = "round-dot" + (i === roundIndex ? " active" : (i < roundIndex ? " done" : ""));
+      }
+
+      const bank = document.getElementById("question-bank");
+      bank.innerHTML = "";
+
+      r.questions.forEach((q, idx) => {
+        const btn = document.createElement("button");
+        btn.className = "q-btn";
+        btn.innerHTML = `
+          <span class="q-icon">${q.icon}</span>
+          <span>${q.short}</span>
+        `;
+        btn.onclick = () => askQuestion(idx);
+        bank.appendChild(btn);
+      });
+    }
+
+    function askQuestion(questionIndex) {
+      if (isWaitingForReplies) return;
+      isWaitingForReplies = true;
+
+      const q = GAME_MODES[currentMode].rounds[currentRound].questions[questionIndex];
+
+      // Disable question buttons while subjects reply
+      const buttons = document.querySelectorAll(".q-btn");
+      buttons.forEach(b => b.disabled = true);
+
+      // Remove empty state placeholders on first question
+      const emptyA = document.getElementById("empty-a");
+      const emptyB = document.getElementById("empty-b");
+      if (emptyA) emptyA.remove();
+      if (emptyB) emptyB.remove();
+
+      // Append Judge question & typing indicator to both terminals
+      const groupA = appendJudgeMessage("feed-a", q.fullText, "reply-a", "status-a");
+      const groupB = appendJudgeMessage("feed-b", q.fullText, "reply-b", "status-b");
+
+      // Reveal Subject A reply slightly faster or slower than B for realism
+      setTimeout(() => {
+        completeReply(groupA.replyEl, q.replyA, "status-a", "feed-a");
+      }, 850);
+
+      setTimeout(() => {
+        completeReply(groupB.replyEl, q.replyB, "status-b", "feed-b");
+        onBothRepliesFinished();
+      }, 1400);
+    }
+
+    function appendJudgeMessage(feedId, questionText, replyClass, statusId) {
+      const feed = document.getElementById(feedId);
+      const group = document.createElement("div");
+      group.className = "msg-group";
+
+      const judgeBubble = document.createElement("div");
+      judgeBubble.className = "msg-judge";
+      judgeBubble.innerHTML = `<span class="tag">You Asked • Round ${currentRound + 1}</span>${questionText}`;
+
+      const replyBubble = document.createElement("div");
+      replyBubble.className = `msg-reply ${replyClass}`;
+      replyBubble.innerHTML = `<div class="typing-dots"><span></span><span></span><span></span></div>`;
+
+      group.appendChild(judgeBubble);
+      group.appendChild(replyBubble);
+      feed.appendChild(group);
+      feed.scrollTop = feed.scrollHeight;
+
+      const statusPill = document.getElementById(statusId);
+      statusPill.textContent = "TYPING...";
+      statusPill.style.color = "var(--accent-gold)";
+      statusPill.style.borderColor = "var(--accent-gold)";
+
+      return { group, replyEl: replyBubble };
+    }
+
+    function completeReply(replyEl, text, statusId, feedId) {
+      replyEl.textContent = text;
+      const statusPill = document.getElementById(statusId);
+      statusPill.textContent = "ONLINE";
+      statusPill.style.color = "var(--accent-cyan)";
+      statusPill.style.borderColor = "var(--accent-cyan)";
+
+      const feed = document.getElementById(feedId);
+      feed.scrollTop = feed.scrollHeight;
+    }
+
+    function onBothRepliesFinished() {
+      isWaitingForReplies = false;
+
+      if (currentRound < 2) {
+        // Let the player read both replies in the chat feed, then present a button to launch the next Question splash screen
+        const nextQNum = currentRound + 2;
+        document.getElementById(`dot-${currentRound}`).className = "round-dot done";
+        document.getElementById("console-prompt").textContent = `Question ${currentRound + 1} Replies Received! Read both answers above, then continue:`;
+        document.getElementById("console-counter").textContent = `${currentRound + 1} of 3 Answered`;
+
+        const bank = document.getElementById("question-bank");
+        bank.style.gridTemplateColumns = "1fr";
+        bank.innerHTML = `
+          <button class="btn btn-primary" onclick="advanceToNextRound()">
+            Continue to Question ${nextQNum} &rarr;
+          </button>
+        `;
+      } else {
+        // All 3 rounds complete -> Replace question bank with the Verdict Call-to-Action button
+        document.getElementById("dot-2").className = "round-dot done";
+        document.getElementById("console-prompt").textContent = "All 3 Questions Complete! Ready to make your call?";
+        document.getElementById("console-counter").textContent = "3 of 3 Answered";
+
+        const bank = document.getElementById("question-bank");
+        bank.style.gridTemplateColumns = "1fr";
+        bank.innerHTML = `
+          <button class="btn btn-gold" onclick="openVerdictModal()">
+            ⚖️ Lock In Your Final Verdict: Who is Human? &rarr;
+          </button>
+        `;
+      }
+    }
+
+    function advanceToNextRound() {
+      const nextRound = currentRound + 1;
+      document.getElementById("question-bank").style.gridTemplateColumns = "";
+      renderRoundConsole(nextRound);
+      showRoundSplash(nextRound);
+    }
+
+    function openVerdictModal() {
+      document.getElementById("verdict-badge").textContent =
+        currentMode === "classic"
+          ? "⚖️ STAGE 1 INTERROGATION COMPLETE"
+          : "⚖️ STAGE 2 INTERROGATION COMPLETE";
+      document.getElementById("overlay-verdict").classList.add("active");
+    }
+
+    function submitVerdict(pickedSubject) {
+      document.getElementById("overlay-verdict").classList.remove("active");
+
+      const badge = document.getElementById("reveal-badge");
+      const headline = document.getElementById("reveal-headline");
+      const sublead = document.getElementById("reveal-sublead");
+      const boxA = document.getElementById("reveal-box-a");
+      const boxB = document.getElementById("reveal-box-b");
+      const tagA = document.getElementById("reveal-tag-a");
+      const tagB = document.getElementById("reveal-tag-b");
+      const titleA = document.getElementById("reveal-title-a");
+      const titleB = document.getElementById("reveal-title-b");
+      const descA = document.getElementById("reveal-desc-a");
+      const descB = document.getElementById("reveal-desc-b");
+      const takeaway = document.getElementById("reveal-takeaway");
+      const actions = document.getElementById("reveal-actions");
+
+      if (currentMode === "classic") {
+        // In Stage 1 (Classic AI), Subject A is the Old Rule-Based Bot, Subject B is the Real Human
+        const guessedCorrectly = (pickedSubject === "B");
+
+        if (guessedCorrectly) {
+          badge.textContent = "✅ EASY SPOT, JUDGE!";
+          badge.style.background = "var(--accent-cyan)";
+          badge.style.color = "#0b131e";
+          headline.textContent = "You Nailed It! Subject B Was the Human!";
+          sublead.innerHTML = `In the <strong>Pre-LLM Era</strong>, spotting the computer was easy. Subject A's rigid keyword lookups and scripted formulas gave it away immediately!`;
+        } else {
+          badge.textContent = "🤖 OOPS! THAT WAS A 1960s CHATBOT!";
+          badge.style.background = "var(--accent-red)";
+          badge.style.color = "#fff";
+          headline.textContent = "Surprise! Subject A Was the Classic Computer!";
+          sublead.innerHTML = `Subject B was the real human! Subject A was using old-fashioned <strong>keyword triggers and scripted templates</strong> (like the 1966 ELIZA program).`;
+        }
+
+        boxA.className = "reveal-box ai-box";
+        tagA.style.color = "var(--accent-cyan)";
+        tagA.textContent = "🤖 Subject A: Classic Rule-Based AI";
+        titleA.textContent = "Rigid Scripts & Keyword Matching";
+        descA.textContent = "Before modern Deep Learning, chatbots relied on hand-coded IF/THEN rules. Whenever you asked about feelings or metaphors, it fell back on dictionary definitions or repeated your own words!";
+
+        boxB.className = "reveal-box human-box";
+        tagB.style.color = "var(--accent-gold)";
+        tagB.textContent = "🧑 Subject B: Real Human Visitor";
+        titleB.textContent = "Effortless Common Sense";
+        descB.textContent = "Even casual human replies draw on real sensory memories, humor, and lived experience—making an old rule-based bot look obvious by comparison.";
+
+        takeaway.innerHTML = `
+          <strong>Ready for the Plot Twist?</strong><br>
+          For decades, people thought computers would <em>always</em> sound as robotic as Subject A. Then came <strong>Deep Neural Networks, Self-Attention, and the Transformer architecture</strong>. Step into <strong>Stage 2</strong> to see what happens when you interrogate a modern Large Language Model!
+        `;
+
+        actions.innerHTML = `
+          <button class="btn btn-primary" onclick="startInterrogation('llm')">
+            🚀 Advance to Stage 2: Modern LLM Era &rarr;
+          </button>
+          <button class="btn" style="background: #333d54; color: var(--text-main);" onclick="resetGame()">
+            &#8635; Back to Mode Select
+          </button>
+        `;
+      } else {
+        // In Stage 2 (Modern LLM), whoever the player picks as Human is revealed to be the Transformer LLM!
+        badge.textContent = "🎉 TURING TEST PASSED BY THE LLM!";
+        badge.style.background = "var(--accent-red)";
+        badge.style.color = "#fff";
+
+        if (pickedSubject === "B") {
+          // Player voted Subject B is Human -> Reveal B is the LLM, and A was the real human!
+          headline.textContent = "Fooled You! Subject B Was the Modern LLM!";
+          sublead.innerHTML = `You voted that <strong>Subject B</strong> was the real human—which means the <strong>Transformer Neural Network</strong> inside Room B just passed the Turing Test!`;
+
+          boxA.className = "reveal-box human-box";
+          tagA.style.color = "var(--accent-gold)";
+          tagA.textContent = "🧑 Subject A: Real Human Visitor";
+          titleA.textContent = "Unpolished & Having an Off Day!";
+          descA.textContent = "Real humans aren't always poetic! Sometimes a real person gives short, dry, or tired answers because they haven't had their morning coffee yet.";
+
+          boxB.className = "reveal-box ai-box";
+          tagB.style.color = "var(--accent-cyan)";
+          tagB.textContent = "🧠 Subject B: Modern Transformer LLM";
+          titleB.textContent = "Deep Neural Networks & Attention";
+          descB.textContent = "Using Self-Attention across billions of parameters, modern LLMs track context, tone, and metaphor to generate remarkably warm, witty, and emotionally moving responses.";
+        } else {
+          // Player voted Subject A is Human -> Reveal A is the LLM mimicking casual human flaws, and B was the real human!
+          headline.textContent = "Fooled You! Subject A Was the Modern LLM!";
+          sublead.innerHTML = `You thought <strong>Subject B</strong> sounded "too polished" and voted for <strong>Subject A</strong>—but Subject A was actually the <strong>Transformer Neural Network</strong>!`;
+
+          boxA.className = "reveal-box ai-box";
+          tagA.style.color = "var(--accent-cyan)";
+          tagA.textContent = "🧠 Subject A: Modern Transformer LLM";
+          titleA.textContent = "Trained on Casual Human Banter";
+          descA.textContent = "Modern LLMs don't just sound like textbooks! Because Transformers learn from billions of real-world chats and social posts, they can effortlessly mimic dry humor, slang, and everyday fatigue.";
+
+          boxB.className = "reveal-box human-box";
+          tagB.style.color = "var(--accent-gold)";
+          tagB.textContent = "🧑 Subject B: Real Human Visitor";
+          titleB.textContent = "Thoughtful & Expressive Human";
+          descB.textContent = "You suspected Subject B was an AI because their answers were warm and poetic—but real humans can be articulate, sincere, and creative when they take their time!";
+        }
+
+        takeaway.innerHTML = `
+          <strong>The Big Exhibit Takeaway:</strong><br>
+          With <strong>Deep Neural Networks and Transformer Attention</strong>, our instincts for spotting "fake" vs. "real" text are no longer reliable—an LLM can sound either deeply poetic or casually human. <em>But even when a machine fools us completely, does it actually understand a single word it says?</em>
+        `;
+
+        actions.innerHTML = `
+          <button class="btn btn-gold" onclick="startInterrogation('classic')">
+            &#8634; Compare with Stage 1 (Classic AI)
+          </button>
+          <button class="btn btn-primary" onclick="resetGame()">
+            &#8635; Main Menu (Reset Kiosk)
+          </button>
+        `;
+      }
+
+      document.getElementById("overlay-reveal").classList.add("active");
+    }
+
+    function resetGame() {
+      document.getElementById("overlay-reveal").classList.remove("active");
+      document.getElementById("overlay-verdict").classList.remove("active");
+      document.getElementById("overlay-round").classList.remove("active");
+      document.getElementById("overlay-intro").classList.add("active");
+
+      document.querySelector(".title-block h1").textContent = "THE IMITATION GAME";
+      document.getElementById("judge-status").textContent = "1 Human • 1 AI Hidden";
+
+      clearChatFeeds();
+      renderRoundConsole(0);
+    }
+
+    window.onload = initGame;
+  </script>
+</body>
+</html>
