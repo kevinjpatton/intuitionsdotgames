@@ -1,416 +1,1434 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>The Chinese Room</title>
-    <style>
-        :root {
-            --bg-color: #1a1a24;
-            --panel-bg: #2a2a36;
-            --text-main: #f0f0f5;
-            --text-muted: #a0a0b0;
-            --accent: #10b981;
-            --accent-hover: #059669;
-            --error: #ef4444;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>The Symbol Room: Searle's Chinese Room</title>
+  <style>
+    :root {
+      --bg-dark: #12161f;
+      --panel-bg: #1e2433;
+      --panel-border: #333d54;
+      --accent-gold: #f5b041;
+      --accent-cyan: #48c9b0;
+      --accent-red: #ec7063;
+      --text-main: #f0f4f8;
+      --text-muted: #94a3b8;
+      --tile-bg: #2a3246;
+      --tile-hover: #37425c;
+    }
 
-        body, html {
-            margin: 0; padding: 0; width: 100%; height: 100%;
-            background-color: var(--bg-color); color: var(--text-main);
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            overflow: hidden; touch-action: none;
-            display: flex; justify-content: center; align-items: center;
-        }
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
 
-        /* State Containers */
-        .state-container {
-            display: none; width: 100%; height: 100%;
-            flex-direction: column; justify-content: center; align-items: center;
-            text-align: center; padding: 20px; box-sizing: border-box;
-        }
-        .active-state { display: flex; animation: fadeIn 0.5s ease-in-out; }
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    /* TOP BAR & CCTV MONITOR */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 24px;
+      background: #0d1017;
+      border-bottom: 2px solid var(--panel-border);
+      height: 90px;
+      flex-shrink: 0;
+    }
 
-        /* Typography & UI Elements */
-        h1 { font-size: 2.5rem; margin-bottom: 10px; }
-        p { font-size: 1.2rem; max-width: 600px; line-height: 1.6; color: var(--text-muted); margin-bottom: 30px; margin-left: auto; margin-right: auto;}
-        
-        .panel {
-            background-color: var(--panel-bg); padding: 40px;
-            border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            max-width: 800px; width: 90%;
-        }
+    .title-block h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      letter-spacing: 1px;
+      color: var(--accent-gold);
+    }
 
-        button.primary-btn {
-            background: linear-gradient(135deg, var(--accent), var(--accent-hover));
-            color: white; border: none; padding: 15px 40px;
-            font-size: 1.2rem; font-weight: bold; border-radius: 50px;
-            cursor: pointer; box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
-            transition: transform 0.1s, box-shadow 0.1s;
-            user-select: none;
-        }
-        button.primary-btn:active { transform: scale(0.95); box-shadow: 0 2px 5px rgba(16, 185, 129, 0.4); }
+    .title-block p {
+      margin: 2px 0 0 0;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
 
-        /* Narrative Visuals */
-        .visual-block {
-            font-size: 4rem; background: rgba(0,0,0,0.2);
-            width: 100%; height: 200px; border-radius: 12px;
-            display: flex; justify-content: center; align-items: center;
-            margin-bottom: 20px; border: 2px dashed #444;
-        }
+    .cctv-container {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: #07090e;
+      border: 2px solid #2e4057;
+      border-radius: 10px;
+      padding: 8px 16px;
+      position: relative;
+    }
 
-        /* --- GAME UI SPECIFICS --- */
-        #game-ui-top {
-            display: flex; justify-content: space-between; width: 100%; max-width: 800px;
-            padding: 0 20px 20px 20px; font-size: 2rem; font-weight: bold;
-            font-family: monospace; color: var(--accent);
-        }
-        
-        .game-layout {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
-            width: 100%; max-width: 800px; text-align: left;
-        }
+    .cctv-badge {
+      position: absolute;
+      top: -10px;
+      left: 10px;
+      background: var(--accent-red);
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      letter-spacing: 1px;
+    }
 
-        .game-box {
-            background: rgba(0,0,0,0.4); border: 1px solid #444;
-            border-radius: 12px; padding: 20px; display: flex; flex-direction: column;
-        }
+    .cctv-face {
+      font-size: 2.4rem;
+      line-height: 1;
+      transition: transform 0.3s ease;
+    }
 
-        .box-title { font-size: 1rem; font-weight: bold; color: var(--text-muted); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 2px; }
+    .cctv-status {
+      display: flex;
+      flex-direction: column;
+    }
 
-        #inbox-display { font-size: 3rem; text-align: center; margin: 20px 0; letter-spacing: 5px; }
-        
-        #rulebook-display { 
-            font-family: monospace; font-size: 1.1rem; overflow-y: auto; 
-            max-height: 200px; color: #ccc; line-height: 1.8;
-            padding-right: 10px;
-        }
+    .cctv-status span.label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+    }
 
-        /* Custom scrollbar for rulebook to keep it clean */
-        #rulebook-display::-webkit-scrollbar { width: 8px; }
-        #rulebook-display::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 4px; }
-        #rulebook-display::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+    .cctv-status span.reaction {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--accent-cyan);
+    }
 
-        #outbox-display {
-            min-height: 60px; background: #000; border: 1px solid #555; border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 2.5rem; letter-spacing: 5px; margin-bottom: 15px;
-        }
+    .round-indicator {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
 
-        .keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 15px; }
-        .keypad button {
-            background: #334155; border: none; color: white; padding: 15px;
-            font-size: 1.8rem; border-radius: 8px; cursor: pointer; transition: 0.1s;
-        }
-        .keypad button:hover { background: var(--accent); color: #000; }
-        .keypad button:active { transform: scale(0.95); }
+    .round-dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--panel-border);
+      transition: all 0.3s;
+    }
 
-        .controls { display: flex; gap: 10px; }
-        .controls button { flex: 1; padding: 15px; font-weight: bold; font-size: 1.2rem; border-radius: 8px; border: none; cursor: pointer; }
-        .btn-send { background: var(--accent); color: #000; }
-        .btn-clear { background: #ef4444; color: #fff; }
+    .round-dot.active {
+      background: var(--accent-gold);
+      box-shadow: 0 0 10px var(--accent-gold);
+    }
 
-        /* Notification overlay */
-        #game-notification {
-            position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%);
-            font-size: 4rem; font-weight: bold; opacity: 0; pointer-events: none; transition: opacity 0.2s;
-            text-shadow: 0 5px 20px rgba(0,0,0,0.8); z-index: 100;
-        }
-        .notify-success { color: var(--accent); }
-        .notify-error { color: var(--error); }
+    .round-dot.done {
+      background: var(--accent-cyan);
+    }
 
-    </style>
+    /* MAIN WORKSPACE */
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1.35fr 1fr;
+      gap: 20px;
+      padding: 20px;
+      overflow: hidden;
+    }
+
+    .panel {
+      background: var(--panel-bg);
+      border: 2px solid var(--panel-border);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    .panel-header {
+      text-align: center;
+      border-bottom: 1px solid var(--panel-border);
+      padding-bottom: 12px;
+      margin-bottom: 12px;
+    }
+
+    .panel-header h2 {
+      margin: 0;
+      font-size: 1.25rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-main);
+    }
+
+    .panel-header p {
+      margin: 4px 0 0 0;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .dir-landscape {
+      display: inline;
+    }
+
+    .dir-portrait {
+      display: none;
+    }
+
+    /* GLYPH TILES */
+    .glyph-slot-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      min-height: 110px;
+      padding: 16px;
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 12px;
+      border: 2px dashed var(--panel-border);
+    }
+
+    .glyph-tile {
+      width: 78px;
+      height: 78px;
+      background: var(--tile-bg);
+      border: 2px solid #526180;
+      border-radius: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      transition: transform 0.12s, background 0.15s, border-color 0.15s;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+
+    .glyph-tile:active {
+      transform: scale(0.93);
+    }
+
+    .glyph-tile svg {
+      width: 48px;
+      height: 48px;
+      stroke: var(--text-main);
+      stroke-width: 6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
+
+    .glyph-tile.incoming {
+      cursor: default;
+      border-color: var(--accent-gold);
+      background: #2b261f;
+    }
+
+    .glyph-tile.incoming svg {
+      stroke: var(--accent-gold);
+    }
+
+    .glyph-tile.output-filled {
+      border-color: var(--accent-cyan);
+      background: #1b3034;
+    }
+
+    .glyph-tile.output-filled svg {
+      stroke: var(--accent-cyan);
+    }
+
+    .empty-slot {
+      width: 78px;
+      height: 78px;
+      border: 2px dashed #475569;
+      border-radius: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #475569;
+      font-weight: bold;
+      font-size: 1.5rem;
+    }
+
+    .input-helper-card {
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    /* RULEBOOK TABLE */
+    .rulebook-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 14px;
+      overflow-y: auto;
+    }
+
+    .rule-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 12px 20px;
+    }
+
+    .rule-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .rule-tile {
+      width: 56px;
+      height: 56px;
+      background: var(--tile-bg);
+      border: 1px solid #526180;
+      border-radius: 8px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .rule-tile svg {
+      width: 36px;
+      height: 36px;
+      stroke: var(--text-main);
+      stroke-width: 6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
+
+    .rule-arrow {
+      font-size: 1.6rem;
+      color: var(--accent-gold);
+      font-weight: bold;
+      padding: 0 10px;
+    }
+
+    /* KEYPAD & ACTION BUTTONS */
+    .tile-bank {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      justify-items: center;
+      margin: 10px 0;
+    }
+
+    .action-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 16px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: transform 0.1s, opacity 0.2s;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn-clear {
+      background: #333d54;
+      color: var(--text-main);
+      flex: 0.45;
+    }
+
+    .btn-send {
+      background: var(--accent-cyan);
+      color: #0b131e;
+    }
+
+    /* FEEDBACK TOAST */
+    #feedback-toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #1e293b;
+      border: 2px solid var(--accent-gold);
+      color: #fff;
+      padding: 12px 28px;
+      border-radius: 50px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+      z-index: 50;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    }
+
+    #feedback-toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* OVERLAY SCREENS (QUIZ, REVEAL, POLL) */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(11, 15, 23, 0.96);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 32px;
+      z-index: 100;
+    }
+
+    .overlay.active {
+      display: flex;
+    }
+
+    .card-modal {
+      background: var(--panel-bg);
+      border: 2px solid var(--panel-border);
+      border-radius: 20px;
+      max-width: 820px;
+      width: 100%;
+      padding: 32px;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+    }
+
+    .card-modal h2 {
+      margin-top: 0;
+      font-size: 1.9rem;
+      color: var(--accent-gold);
+    }
+
+    .card-modal p.lead {
+      font-size: 1.2rem;
+      color: var(--text-main);
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+
+    .quiz-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .quiz-btn {
+      background: var(--tile-bg);
+      border: 2px solid #475569;
+      color: var(--text-main);
+      padding: 20px;
+      border-radius: 14px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s;
+    }
+
+    .quiz-btn:hover, .quiz-btn:active {
+      border-color: var(--accent-gold);
+      background: var(--tile-hover);
+    }
+
+    .quiz-btn.highlight {
+      border-color: var(--accent-cyan);
+      background: #173238;
+    }
+
+    .translation-list {
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin: 20px 0 28px 0;
+    }
+
+    .translation-item {
+      background: rgba(0,0,0,0.3);
+      border-left: 4px solid var(--accent-cyan);
+      padding: 12px 18px;
+      border-radius: 8px;
+    }
+
+    .translation-item .round-tag {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      color: var(--accent-gold);
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+
+    .translation-item .dialogue {
+      font-size: 1.05rem;
+      margin-top: 4px;
+    }
+
+    .takeaway-box {
+      background: #152232;
+      border: 2px solid var(--accent-cyan);
+      padding: 18px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+      font-size: 1.1rem;
+      line-height: 1.5;
+    }
+
+    .poll-bar-wrap {
+      margin-top: 12px;
+      text-align: left;
+    }
+
+    .poll-bar-bg {
+      background: #12161f;
+      height: 14px;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+
+    .poll-bar-fill {
+      background: var(--accent-cyan);
+      height: 100%;
+      width: 0%;
+      transition: width 0.6s ease;
+    }
+
+    /* CUTSCENE SPLASH MODAL STYLES */
+    .cutscene-badge {
+      display: inline-block;
+      background: var(--accent-red);
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 800;
+      padding: 4px 12px;
+      border-radius: 50px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .cutscene-stage {
+      background: #0b0e14;
+      border: 2px solid #2e4057;
+      border-radius: 16px;
+      padding: 24px;
+      margin: 16px 0 24px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      position: relative;
+      box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.7);
+    }
+
+    .visitor-avatar {
+      font-size: 4.8rem;
+      line-height: 1;
+      filter: drop-shadow(0 8px 16px rgba(0,0,0,0.5));
+      animation: floatVisitor 2.4s ease-in-out infinite;
+    }
+
+    @keyframes floatVisitor {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+
+    .visitor-speech {
+      background: #1e293b;
+      border: 2px solid #475569;
+      color: var(--text-main);
+      padding: 12px 22px;
+      border-radius: 14px;
+      font-size: 1.1rem;
+      font-style: italic;
+      max-width: 560px;
+      position: relative;
+    }
+
+    .visitor-speech.happy {
+      border-color: var(--accent-cyan);
+      background: #132a2e;
+      color: #e2f8f5;
+    }
+
+    .visitor-speech.angry {
+      border-color: var(--accent-red);
+      background: #2c1619;
+      color: #fadbd8;
+    }
+
+    .slot-wall-graphic {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .wall-slit {
+      width: 240px;
+      height: 14px;
+      background: #030406;
+      border: 2px solid #475569;
+      border-radius: 10px;
+      box-shadow: 0 0 12px rgba(245, 176, 65, 0.25);
+    }
+
+    .slip-preview-tray {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      align-items: center;
+      padding: 12px 20px;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 12px;
+      border: 1px dashed #475569;
+    }
+
+    /* 1. COMPACT LAPTOP SCREENS (Short Viewport Height) */
+    @media (max-height: 820px) and (orientation: landscape) {
+      header {
+        height: 72px;
+        padding: 8px 20px;
+      }
+      .title-block h1 {
+        font-size: 1.25rem;
+      }
+      .title-block p {
+        font-size: 0.85rem;
+      }
+      .cctv-face {
+        font-size: 1.9rem;
+      }
+      main {
+        padding: 12px 16px;
+        gap: 14px;
+      }
+      .panel {
+        padding: 14px;
+      }
+      .panel-header {
+        padding-bottom: 8px;
+        margin-bottom: 8px;
+      }
+      .panel-header h2 {
+        font-size: 1.1rem;
+      }
+      .glyph-slot-row {
+        min-height: 84px;
+        padding: 10px;
+      }
+      .glyph-tile, .empty-slot {
+        width: 62px;
+        height: 62px;
+      }
+      .glyph-tile svg {
+        width: 38px;
+        height: 38px;
+      }
+      .rule-row {
+        padding: 8px 14px;
+      }
+      .rule-tile {
+        width: 46px;
+        height: 46px;
+      }
+      .rule-tile svg {
+        width: 28px;
+        height: 28px;
+      }
+      .input-helper-card {
+        padding: 10px;
+        font-size: 0.85rem;
+      }
+      .btn {
+        padding: 12px;
+        font-size: 0.95rem;
+      }
+      .card-modal {
+        padding: 22px;
+        max-height: 92vh;
+        overflow-y: auto;
+      }
+      .card-modal h2 {
+        font-size: 1.5rem;
+      }
+      .card-modal p.lead {
+        font-size: 1.05rem;
+        margin-bottom: 14px;
+      }
+      .quiz-btn {
+        padding: 14px;
+        font-size: 0.95rem;
+      }
+      .translation-list {
+        margin: 12px 0 16px 0;
+        gap: 8px;
+      }
+      .translation-item {
+        padding: 8px 14px;
+      }
+      .takeaway-box {
+        padding: 12px;
+        font-size: 0.95rem;
+        margin-bottom: 14px;
+      }
+      .visitor-avatar {
+        font-size: 3.4rem;
+      }
+      .cutscene-stage {
+        padding: 14px;
+        margin: 10px 0 14px 0;
+        gap: 10px;
+      }
+    }
+
+    /* 2. PORTRAIT ORIENTED TOUCHSCREENS & VERTICAL KIOSKS */
+    @media (orientation: portrait), (max-width: 960px) {
+      header {
+        height: auto;
+        min-height: 84px;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 14px 20px;
+      }
+      .title-block {
+        flex: 1 1 55%;
+      }
+      .round-indicator {
+        order: 2;
+      }
+      .cctv-container {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+        padding: 8px 16px;
+      }
+      main {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr auto;
+        gap: 14px;
+        padding: 14px 20px;
+      }
+      .panel {
+        padding: 16px 20px;
+        gap: 10px;
+      }
+      .panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        text-align: left;
+        padding-bottom: 8px;
+        margin-bottom: 4px;
+      }
+      .dir-landscape {
+        display: none;
+      }
+      .dir-portrait {
+        display: inline;
+      }
+      .input-helper-card {
+        padding: 10px 14px;
+        font-size: 0.9rem;
+      }
+      .input-helper-card br {
+        display: none;
+      }
+      .glyph-slot-row {
+        min-height: 88px;
+        padding: 10px;
+      }
+      .glyph-tile, .empty-slot {
+        width: 68px;
+        height: 68px;
+      }
+      .glyph-tile svg {
+        width: 42px;
+        height: 42px;
+      }
+      .rulebook-body {
+        gap: 10px;
+      }
+      .rule-row {
+        padding: 10px 16px;
+        justify-content: space-around;
+      }
+      /* 6 symbols in a single row on portrait so the bottom panel stays compact and easy to reach */
+      .tile-bank {
+        grid-template-columns: repeat(6, 1fr);
+        gap: 10px;
+        margin: 6px 0;
+      }
+      .overlay {
+        padding: 20px;
+      }
+      .card-modal {
+        padding: 28px 24px;
+        max-height: 92vh;
+        overflow-y: auto;
+      }
+      .quiz-options {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* 3. LARGE PORTRAIT KIOSKS (e.g., 1080x1920 Vertical Totems) */
+    @media (orientation: portrait) and (min-height: 1200px) {
+      header {
+        padding: 20px 32px;
+        gap: 14px;
+      }
+      .title-block h1 {
+        font-size: 2rem;
+      }
+      .title-block p {
+        font-size: 1.15rem;
+      }
+      .cctv-face {
+        font-size: 3rem;
+      }
+      .cctv-status span.reaction {
+        font-size: 1.25rem;
+      }
+      main {
+        padding: 24px 32px;
+        gap: 22px;
+      }
+      .panel {
+        padding: 24px 28px;
+        border-radius: 20px;
+      }
+      .panel-header h2 {
+        font-size: 1.55rem;
+      }
+      .panel-header p {
+        font-size: 1.05rem;
+      }
+      .glyph-slot-row {
+        min-height: 120px;
+        padding: 16px;
+        gap: 18px;
+      }
+      .glyph-tile, .empty-slot {
+        width: 92px;
+        height: 92px;
+        border-radius: 16px;
+      }
+      .glyph-tile svg {
+        width: 56px;
+        height: 56px;
+      }
+      .rule-row {
+        padding: 16px 28px;
+      }
+      .rule-tile {
+        width: 72px;
+        height: 72px;
+      }
+      .rule-tile svg {
+        width: 46px;
+        height: 46px;
+      }
+      .rule-arrow {
+        font-size: 2.2rem;
+      }
+      .btn {
+        padding: 22px;
+        font-size: 1.35rem;
+      }
+    }
+  </style>
 </head>
 <body>
 
-    <div id="intro-state" class="state-container active-state">
-        <div class="panel">
-            <h1>The Chinese Room</h1>
-            <p>
-                Can a computer truly understand what it is doing, or is it merely simulating intelligence? 
-            </p>
-            <p>
-                In 1980, philosopher John Searle proposed a thought experiment designed to challenge the idea that running a computer program is sufficient for creating a conscious mind. In this module, you will step inside that room.
-            </p>
-            <button class="primary-btn" onclick="startNarrative()">Examine the Theory</button>
-        </div>
+  <!-- TOP STATUS BAR -->
+  <header>
+    <div class="title-block">
+      <h1>THE SYMBOL ROOM</h1>
+      <p id="round-subtitle">Round 1 of 3: Match the incoming symbol using the Rulebook.</p>
     </div>
 
-    <div id="narrative-state" class="state-container">
-        <div class="panel">
-            <div id="narrative-visual" class="visual-block">🤖</div>
-            <h2 id="narrative-title">Phase Title</h2>
-            <p id="narrative-text">Phase Text</p>
-            <button class="primary-btn" id="narrative-btn" onclick="nextNarrative()">Continue</button>
-        </div>
+    <div class="round-indicator">
+      <div class="round-dot active" id="dot-0"></div>
+      <div class="round-dot" id="dot-1"></div>
+      <div class="round-dot" id="dot-2"></div>
     </div>
 
-    <div id="game-state" class="state-container">
-        <div id="game-notification">SUCCESS</div>
-        
-        <div id="game-ui-top">
-            <div>TIMER: <span id="timer-display">60</span></div>
-            <div>SCORE: <span id="score-display">0</span></div>
-        </div>
-
-        <div class="game-layout">
-            <div style="display: flex; flex-direction: column; gap: 20px;">
-                <div class="game-box">
-                    <div class="box-title">Incoming Query (Inbox)</div>
-                    <div id="inbox-display">?</div>
-                </div>
-                <div class="game-box" style="flex-grow: 1;">
-                    <div class="box-title">System Rulebook</div>
-                    <div id="rulebook-display"></div>
-                </div>
-            </div>
-
-            <div class="game-box">
-                <div class="box-title">Construct Response (Outbox)</div>
-                <div id="outbox-display"></div>
-                <div class="keypad" id="keypad-container">
-                    </div>
-                <div class="controls">
-                    <button class="btn-clear" onclick="clearOutbox()">CLEAR</button>
-                    <button class="btn-send" onclick="sendOutput()">SEND</button>
-                </div>
-            </div>
-        </div>
+    <div class="cctv-container">
+      <div class="cctv-badge">OUTSIDE CAM</div>
+      <div class="cctv-face" id="cctv-face">🧑</div>
+      <div class="cctv-status">
+        <span class="label">Visitor Outside Room</span>
+        <span class="reaction" id="cctv-text">Waiting for reply...</span>
+      </div>
     </div>
+  </header>
 
-    <div id="takeaway-state" class="state-container">
-        <div class="panel">
-            <div id="takeaway-visual" class="visual-block">🧠</div>
-            <h2 id="takeaway-title">Phase Title</h2>
-            <p id="takeaway-text">Phase Text</p>
-            <button class="primary-btn" id="takeaway-btn" onclick="nextTakeaway()">Continue</button>
+  <!-- 3-COLUMN WORKSPACE -->
+  <main>
+    <!-- LEFT: INPUT SLOT -->
+    <section class="panel">
+      <div class="panel-header">
+        <h2>1. Input Slot</h2>
+        <p>Slip of paper from outside</p>
+      </div>
+
+      <div class="glyph-slot-row" id="input-slot"></div>
+
+      <div class="input-helper-card">
+        You are locked inside a closed room.<br><br>
+        You don't know what these glowing symbols mean—just find the exact matching row in <strong>The Rulebook</strong>!
+      </div>
+
+      <div style="text-align:center; color: var(--accent-gold); font-weight: 600; font-size: 0.95rem;">
+        <span class="dir-landscape">Match these shapes in the center table &rarr;</span>
+        <span class="dir-portrait">&darr; Match these shapes in the Rulebook below &darr;</span>
+      </div>
+    </section>
+
+    <!-- CENTER: THE RULEBOOK -->
+    <section class="panel">
+      <div class="panel-header">
+        <h2>2. The Rulebook</h2>
+        <p id="rulebook-hint">Find the matching Input row on the left to see which Output symbols to send</p>
+      </div>
+
+      <div class="rulebook-body" id="rulebook-rows"></div>
+    </section>
+
+    <!-- RIGHT: OUTPUT SLOT & SYMBOL TRAY -->
+    <section class="panel">
+      <div class="panel-header">
+        <h2>3. Output Slot</h2>
+        <p>Tap symbols below to build your reply</p>
+      </div>
+
+      <div class="glyph-slot-row" id="output-slot"></div>
+
+      <div class="tile-bank" id="tile-bank"></div>
+
+      <div class="action-row">
+        <button class="btn btn-clear" onclick="clearOutput()">Clear</button>
+        <button class="btn btn-send" onclick="submitOutput()">Send Slip &rarr;</button>
+      </div>
+    </section>
+  </main>
+
+  <div id="feedback-toast">Check the Rulebook carefully!</div>
+
+  <!-- OVERLAY 0: VISITOR OUTSIDE CUTSCENE (INTRO & REACTION SPLASH) -->
+  <div class="overlay" id="overlay-cutscene">
+    <div class="card-modal">
+      <div class="cutscene-badge" id="cutscene-badge">🎥 OUTSIDE THE ROOM</div>
+      <h2 id="cutscene-title">A Visitor Approaches the Slot...</h2>
+
+      <div class="cutscene-stage">
+        <div class="visitor-avatar" id="cutscene-avatar">🧑✉️</div>
+        <div class="visitor-speech" id="cutscene-speech">
+          "Let's see if the AI inside this room can actually hold a conversation..."
         </div>
-    </div>
 
-    <div id="conclusion-state" class="state-container">
-        <div class="panel">
-            <h1>Simulation Terminated</h1>
-            <p>
-                "Syntax by itself is neither constitutive of nor sufficient for semantics."<br>
-                <em>— John Searle</em>
-            </p>
-            <p>
-                By experiencing the mechanical, blind manipulation of symbols, you have seen firsthand the gap between simulating intelligence and actually possessing a mind.
-            </p>
-            <button class="primary-btn" onclick="resetToGame()">Reboot Simulation</button>
+        <div class="slot-wall-graphic">
+          <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted);" id="cutscene-slip-label">
+            Slip Pushed Through the Wall Slot:
+          </span>
+          <div class="wall-slit"></div>
+          <div class="slip-preview-tray" id="cutscene-glyphs"></div>
         </div>
+      </div>
+
+      <button class="btn btn-send" id="cutscene-btn" style="max-width: 380px;" onclick="handleCutsceneAction()">
+        Take Slip Inside Room &rarr;
+      </button>
     </div>
+  </div>
 
-    <script>
-        // --- DATA ---
-        const narrativePhases = [
-            { icon: "👤", title: "The Turing Test", text: "In 1950, Alan Turing proposed that if a machine behaves indistinguishably from a human in conversation, it must be considered 'intelligent.' It judges intelligence entirely on external output." },
-            { icon: "💻", title: "Strong AI", text: "This gave rise to the concept of 'Strong AI'—the claim that an appropriately programmed computer doesn't just simulate a mind, it literally possesses one. The software is the mind." },
-            { icon: "🚪", title: "The Setup", text: "To challenge this, John Searle imagined locking a person who speaks only English inside a room. They are given alien glyphs and a thick rulebook written in English on how to respond to them. You are now that person." }
-        ];
+  <!-- OVERLAY 1: THE GOTCHA QUIZ -->
+  <div class="overlay" id="overlay-quiz">
+    <div class="card-modal">
+      <h2>🎉 TURING TEST PASSED!</h2>
+      <p class="lead">
+        The visitor outside just wiped away a tear and rated your conversation <strong>100% Deeply Human</strong>.<br><br>
+        Quick question: <strong>What did they just say to you in Round 3?</strong>
+      </p>
+      <div class="quiz-options">
+        <button class="quiz-btn" onclick="showReveal(false)">A) They asked for a spicy dumpling recipe.</button>
+        <button class="quiz-btn" onclick="showReveal(false)">B) They said they are afraid of losing their memories as they age.</button>
+        <button class="quiz-btn" onclick="showReveal(false)">C) They asked for directions to the nearest train station.</button>
+        <button class="quiz-btn highlight" onclick="showReveal(true)">D) I have literally no idea. I was just matching shapes!</button>
+      </div>
+    </div>
+  </div>
 
-        const takeawayPhases = [
-            { icon: "📜", title: "The Reveal", text: "You successfully processed the inputs. The judges outside are convinced you are a conscious being. Here is what you just said:\n\nJudge: Are you a machine?\nYou: No, I am a living being.\nJudge: Prove you are conscious.\nYou: I think, therefore I am." },
-            { icon: "🧩", title: "Syntax vs. Semantics", text: "You passed the test. But did you understand a single word you just 'said'? No. You were merely manipulating Syntax (formal symbols) based on rules. You lacked Semantics (actual meaning and understanding)." },
-            { icon: "⚙️", title: "Searle's Conclusion", text: "Searle argues that a computer is exactly like you in that room. It blindly shuffles symbols according to code. Because computers operate purely on syntax, running a program—no matter how complex—is not enough to create true consciousness." }
-        ];
+  <!-- OVERLAY 2: THE TRANSLATION & SEARLE REVEAL -->
+  <div class="overlay" id="overlay-reveal">
+    <div class="card-modal">
+      <h2 id="reveal-headline">Exactly! You had zero idea.</h2>
+      <p class="lead" style="margin-bottom: 12px;">Here is the English translation of the conversation you just held:</p>
 
-        const glyphs = ['⍙', '⎍', '⏣', '⍾', '⍝', '⎈', '⎇', '⌹'];
-        
-        // Expanded rulebook for significantly more variety
-        const rules = [
-            {in: '⍙', out: '⍾'}, 
-            {in: '⎍', out: '⍝'}, 
-            {in: '⏣', out: '⎈'},
-            {in: '⍾', out: '⌹'},
-            {in: '⍝', out: '⎇'},
-            {in: '⍙ ⎍', out: '⍾ ⍝'}, 
-            {in: '⎍ ⏣', out: '⍝ ⎈'}, 
-            {in: '⎈ ⍙', out: '⏣ ⍾'},
-            {in: '⍝ ⌹', out: '⎇ ⍙'},
-            {in: '⍾ ⏣', out: '⎈ ⍙'},
-            {in: '⌹ ⍙ ⎍', out: '⎇ ⏣ ⍾'},
-            {in: '⎇ ⎈ ⍾', out: '⍙ ⌹ ⍝'},
-            {in: '⍾ ⏣ ⎍', out: '⎈ ⍙ ⎇'},
-            {in: '⍙ ⍙ ⏣', out: '⍾ ⍾ ⌹'},
-            {in: '⎍ ⎍ ⍝', out: '⏣ ⏣ ⎇'}
-        ];
+      <div class="translation-list">
+        <div class="translation-item">
+          <div class="round-tag">Round 1 (1 Symbol)</div>
+          <div class="dialogue"><strong>Outside:</strong> "Hello? Is anyone in there?" &rarr; <strong>You:</strong> "Yes, I am here and listening."</div>
+        </div>
+        <div class="translation-item">
+          <div class="round-tag">Round 2 (2 Symbols)</div>
+          <div class="dialogue"><strong>Outside:</strong> "Tell me a quick joke!" &rarr; <strong>You:</strong> "Why do owls make bad secret keepers? They always give a hoot!"</div>
+        </div>
+        <div class="translation-item">
+          <div class="round-tag">Round 3 (3 Symbols)</div>
+          <div class="dialogue"><strong>Outside:</strong> "I'm scared of growing old and forgetting the people I love." &rarr; <strong>You:</strong> "Even when memories fade, the love you built remains."</div>
+        </div>
+      </div>
 
-        // --- STATE VARIABLES ---
-        let currentNarrative = 0;
-        let currentTakeaway = 0;
-        let score = 0;
-        let timeLeft = 60;
-        let gameInterval = null;
-        let currentRule = null;
-        let outboxArray = [];
+      <div class="takeaway-box">
+        <strong>John Searle's Chinese Room Argument (1980):</strong><br>
+        You just acted like a computer program. By following rules to match symbol shapes (<strong>syntax</strong>), you convinced a human that you understood their feelings—without ever knowing what a single symbol meant (<strong>semantics</strong>).
+      </div>
 
-        // --- UI ELEMENTS ---
-        const states = {
-            intro: document.getElementById('intro-state'),
-            narrative: document.getElementById('narrative-state'),
-            game: document.getElementById('game-state'),
-            takeaway: document.getElementById('takeaway-state'),
-            conclusion: document.getElementById('conclusion-state')
-        };
+      <button class="btn btn-send" style="max-width: 320px;" onclick="showPoll()">One Last Question &rarr;</button>
+    </div>
+  </div>
 
-        function switchState(stateName) {
-            Object.values(states).forEach(el => el.classList.remove('active-state'));
-            states[stateName].classList.add('active-state');
+  <!-- OVERLAY 3: KIOSK EXIT POLL -->
+  <div class="overlay" id="overlay-poll">
+    <div class="card-modal">
+      <h2>What Do You Think?</h2>
+      <p class="lead">Did <em>anything</em> inside that room actually understand the visitor's fear of growing old?</p>
+
+      <div class="quiz-options" style="grid-template-columns: 1fr;" id="poll-buttons">
+        <button class="quiz-btn" onclick="castVote(0)">
+          <strong>1. Nobody understood anything.</strong> It was just mechanical shape-matching. <em>(Searle's View)</em>
+        </button>
+        <button class="quiz-btn" onclick="castVote(1)">
+          <strong>2. The Whole System understood.</strong> You didn't know the meaning, but You + The Rulebook together did! <em>(The Systems Reply)</em>
+        </button>
+        <button class="quiz-btn" onclick="castVote(2)">
+          <strong>3. Brains are just rooms too!</strong> Your own brain cells just pass signals without "understanding" English either. <em>(Brain Simulator Reply)</em>
+        </button>
+      </div>
+
+      <div id="poll-results" style="display:none; margin-top: 20px;">
+        <div class="poll-bar-wrap">
+          <span><strong>Nobody Understood (Searle):</strong> <span id="pct-0">0%</span></span>
+          <div class="poll-bar-bg"><div class="poll-bar-fill" id="bar-0"></div></div>
+        </div>
+        <div class="poll-bar-wrap">
+          <span><strong>The Whole System Understood:</strong> <span id="pct-1">0%</span></span>
+          <div class="poll-bar-bg"><div class="poll-bar-fill" id="bar-1"></div></div>
+        </div>
+        <div class="poll-bar-wrap">
+          <span><strong>Brains Work the Same Way:</strong> <span id="pct-2">0%</span></span>
+          <div class="poll-bar-bg"><div class="poll-bar-fill" id="bar-2"></div></div>
+        </div>
+        <button class="btn btn-send" style="margin-top: 28px; max-width: 280px;" onclick="resetGame()">Play Again (Reset Kiosk)</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 6 Custom Invented Alien Glyphs (Pure SVG Paths so zero language crossover)
+    const GLYPHS = {
+      g1: `<svg viewBox="0 0 100 100"><polygon points="50,15 85,80 15,80"/><circle cx="50" cy="58" r="8" fill="currentColor"/></svg>`,
+      g2: `<svg viewBox="0 0 100 100"><rect x="20" y="20" width="60" height="60" rx="8"/><line x1="20" y1="50" x2="80" y2="50"/><line x1="50" y1="20" x2="50" y2="50"/></svg>`,
+      g3: `<svg viewBox="0 0 100 100"><path d="M20,75 C20,30 80,30 80,75"/><line x1="50" y1="15" x2="50" y2="85"/><circle cx="50" cy="15" r="6"/></svg>`,
+      g4: `<svg viewBox="0 0 100 100"><polygon points="50,12 88,50 50,88 12,50"/><line x1="32" y1="50" x2="68" y2="50"/></svg>`,
+      g5: `<svg viewBox="0 0 100 100"><path d="M22,25 L78,25 L22,75 L78,75"/><circle cx="50" cy="50" r="9"/></svg>`,
+      g6: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="32"/><path d="M35,35 L65,65 M65,35 L35,65"/></svg>`
+    };
+
+    // 3 Escalating Pure Lookup Rounds (1 symbol -> 2 symbols -> 3 symbols)
+    const ROUNDS = [
+      {
+        subtitle: "Round 1 of 3: Find the incoming symbol in the Rulebook and send the matching reply.",
+        hint: "Match the 1 Input symbol on the left to find your 1 Output symbol",
+        input: ["g1"],
+        expectedOutput: ["g4"],
+        rules: [
+          { in: ["g2"], out: ["g5"] },
+          { in: ["g1"], out: ["g4"] },
+          { in: ["g3"], out: ["g6"] }
+        ],
+        introTitle: "Round 1: A Visitor Steps Up to the Machine",
+        introAvatar: "🧑✉️",
+        introSpeech: "The visitor walks up to the wall outside and slides a single symbol through the input slot.",
+        successTitle: "The Visitor Reads Your Slip!",
+        successAvatar: "😊👍",
+        successSpeech: "\"Oh, wonderful! It greeted me right back. This machine is working great!\"",
+        failTitle: "The Visitor Looks Confused & Annoyed!",
+        failAvatar: "😠💢",
+        failSpeech: "\"Huh?! What is this nonsense symbol? Is this stupid machine broken already?!\"",
+        reactionFace: "😊👍",
+        reactionText: "Smiles warmly & nods!"
+      },
+      {
+        subtitle: "Round 2 of 3: Match the 2 incoming symbols in the exact order shown!",
+        hint: "Look closely at the order of the 2 Input symbols",
+        input: ["g2", "g5"],
+        expectedOutput: ["g6", "g3"],
+        rules: [
+          { in: ["g2", "g4"], out: ["g1", "g5"] },
+          { in: ["g2", "g5"], out: ["g6", "g3"] },
+          { in: ["g5", "g2"], out: ["g4", "g1"] },
+          { in: ["g3", "g1"], out: ["g2", "g6"] }
+        ],
+        introTitle: "Round 2: The Visitor Sends a Longer Note",
+        introAvatar: "🧑✨",
+        introSpeech: "Encouraged by your first reply, the visitor grins and pushes a 2-symbol slip through the slot.",
+        successTitle: "The Visitor Bursts Out Laughing!",
+        successAvatar: "😂👏",
+        successSpeech: "\"Hahaha! That's actually a hilarious pun! This thing really gets my sense of humor!\"",
+        failTitle: "The Visitor Groans in Frustration!",
+        failAvatar: "🤬📋",
+        failSpeech: "\"Ugh, total gibberish! Come on, who programmed this piece of junk?! Let me try asking again...\"",
+        reactionFace: "😂👏",
+        reactionText: "Bursts out laughing!"
+      },
+      {
+        subtitle: "Round 3 of 3: Match the 3-symbol phrase carefully to complete the conversation!",
+        hint: "Find the row that matches all 3 Input symbols in exact order",
+        input: ["g3", "g6", "g1"],
+        expectedOutput: ["g5", "g2", "g4"],
+        rules: [
+          { in: ["g3", "g1", "g6"], out: ["g1", "g4", "g2"] },
+          { in: ["g3", "g6", "g1"], out: ["g5", "g2", "g4"] },
+          { in: ["g6", "g3", "g1"], out: ["g2", "g5", "g3"] },
+          { in: ["g4", "g2", "g6"], out: ["g3", "g1", "g5"] }
+        ],
+        introTitle: "Round 3: A Deeply Personal Message",
+        introAvatar: "🥺📝",
+        introSpeech: "The visitor pauses, takes a deep breath, and carefully slides a 3-symbol message into the slot.",
+        successTitle: "The Visitor Wipes Away a Tear!",
+        successAvatar: "🥹💖",
+        successSpeech: "\"Wow... that is the most comforting thing anyone has ever said to me. It truly understands my heart.\"",
+        failTitle: "The Visitor Storms Back to the Slot!",
+        failAvatar: "😡👎",
+        failSpeech: "\"Are you kidding me?! I pour my heart out and this dumb box spits out random shapes?!\"",
+        reactionFace: "🥹💖",
+        reactionText: "Wipes away a tear (100% Empathy!)"
+      }
+    ];
+
+    let currentRound = 0;
+    let currentOutput = [];
+    let pollCounts = [14, 19, 12]; // Seeded exhibit votes so first player sees a live chart
+    let nextCutsceneCallback = null;
+
+    function initGame() {
+      renderTileBank();
+      loadRound(0, true);
+    }
+
+    function renderTileBank() {
+      const bank = document.getElementById("tile-bank");
+      bank.innerHTML = "";
+      Object.keys(GLYPHS).forEach(key => {
+        const btn = document.createElement("div");
+        btn.className = "glyph-tile";
+        btn.innerHTML = GLYPHS[key];
+        btn.onclick = () => addOutputGlyph(key);
+        bank.appendChild(btn);
+      });
+    }
+
+    function loadRound(index, showIntroCutscene = true) {
+      currentRound = index;
+      currentOutput = [];
+      const r = ROUNDS[index];
+
+      // Update header & dots
+      document.getElementById("round-subtitle").textContent = r.subtitle;
+      document.getElementById("rulebook-hint").textContent = r.hint;
+      for (let i = 0; i < 3; i++) {
+        const dot = document.getElementById(`dot-${i}`);
+        dot.className = "round-dot" + (i === index ? " active" : (i < index ? " done" : ""));
+      }
+
+      // Render Input Slot
+      const inputContainer = document.getElementById("input-slot");
+      inputContainer.innerHTML = "";
+      r.input.forEach(g => {
+        const tile = document.createElement("div");
+        tile.className = "glyph-tile incoming";
+        tile.innerHTML = GLYPHS[g];
+        inputContainer.appendChild(tile);
+      });
+
+      // Render Rulebook
+      const rb = document.getElementById("rulebook-rows");
+      rb.innerHTML = "";
+      r.rules.forEach(rule => {
+        const row = document.createElement("div");
+        row.className = "rule-row";
+
+        // Left side (Input Pattern)
+        const leftGroup = document.createElement("div");
+        leftGroup.className = "rule-group";
+
+        rule.in.forEach(g => {
+          const t = document.createElement("div");
+          t.className = "rule-tile";
+          t.innerHTML = GLYPHS[g];
+          leftGroup.appendChild(t);
+        });
+
+        // Arrow
+        const arrow = document.createElement("div");
+        arrow.className = "rule-arrow";
+        arrow.innerHTML = "&rarr;";
+
+        // Right side (Output Pattern)
+        const rightGroup = document.createElement("div");
+        rightGroup.className = "rule-group";
+
+        rule.out.forEach(g => {
+          const t = document.createElement("div");
+          t.className = "rule-tile";
+          t.innerHTML = GLYPHS[g];
+          rightGroup.appendChild(t);
+        });
+
+        row.appendChild(leftGroup);
+        row.appendChild(arrow);
+        row.appendChild(rightGroup);
+        rb.appendChild(row);
+      });
+
+      renderOutputSlot();
+
+      if (showIntroCutscene) {
+        document.getElementById("cctv-face").textContent = "🧑";
+        document.getElementById("cctv-text").textContent = "Waiting for reply...";
+        openCutscene({
+          badge: `🎥 OUTSIDE CAM • ROUND ${index + 1} OF 3`,
+          title: r.introTitle,
+          avatar: r.introAvatar,
+          speech: r.introSpeech,
+          speechType: "neutral",
+          slipLabel: "Incoming Slip Pushed Into Your Room:",
+          glyphs: r.input,
+          tileClass: "incoming",
+          btnText: "Take Slip & Check Rulebook →",
+          onContinue: () => closeCutscene()
+        });
+      }
+    }
+
+    function openCutscene(config) {
+      document.getElementById("cutscene-badge").textContent = config.badge;
+      document.getElementById("cutscene-title").textContent = config.title;
+      document.getElementById("cutscene-avatar").textContent = config.avatar;
+
+      const speechEl = document.getElementById("cutscene-speech");
+      speechEl.textContent = config.speech;
+      speechEl.className = "visitor-speech" +
+        (config.speechType === "happy" ? " happy" : (config.speechType === "angry" ? " angry" : ""));
+
+      document.getElementById("cutscene-slip-label").textContent = config.slipLabel;
+
+      const glyphTray = document.getElementById("cutscene-glyphs");
+      glyphTray.innerHTML = "";
+      config.glyphs.forEach(g => {
+        const tile = document.createElement("div");
+        tile.className = "glyph-tile " + (config.tileClass || "");
+        tile.style.cursor = "default";
+        tile.innerHTML = GLYPHS[g];
+        glyphTray.appendChild(tile);
+      });
+
+      const btn = document.getElementById("cutscene-btn");
+      btn.textContent = config.btnText;
+      nextCutsceneCallback = config.onContinue;
+
+      document.getElementById("overlay-cutscene").classList.add("active");
+    }
+
+    function closeCutscene() {
+      document.getElementById("overlay-cutscene").classList.remove("active");
+    }
+
+    function handleCutsceneAction() {
+      if (typeof nextCutsceneCallback === "function") {
+        const cb = nextCutsceneCallback;
+        nextCutsceneCallback = null;
+        cb();
+      } else {
+        closeCutscene();
+      }
+    }
+
+    function addOutputGlyph(key) {
+      const expectedLen = ROUNDS[currentRound].expectedOutput.length;
+      if (currentOutput.length < expectedLen) {
+        currentOutput.push(key);
+        renderOutputSlot();
+      } else {
+        showToast(`Only ${expectedLen} symbol(s) needed for this reply!`);
+      }
+    }
+
+    function clearOutput() {
+      currentOutput = [];
+      renderOutputSlot();
+    }
+
+    function renderOutputSlot() {
+      const outContainer = document.getElementById("output-slot");
+      outContainer.innerHTML = "";
+      const expectedLen = ROUNDS[currentRound].expectedOutput.length;
+
+      for (let i = 0; i < expectedLen; i++) {
+        if (currentOutput[i]) {
+          const tile = document.createElement("div");
+          tile.className = "glyph-tile output-filled";
+          tile.innerHTML = GLYPHS[currentOutput[i]];
+          tile.onclick = () => {
+            currentOutput.splice(i, 1);
+            renderOutputSlot();
+          };
+          outContainer.appendChild(tile);
+        } else {
+          const empty = document.createElement("div");
+          empty.className = "empty-slot";
+          empty.textContent = "?";
+          outContainer.appendChild(empty);
         }
+      }
+    }
 
-        // --- NARRATIVE LOGIC ---
-        function startNarrative() {
-            currentNarrative = 0;
-            updateNarrativeUI();
-            switchState('narrative');
+    function submitOutput() {
+      const r = ROUNDS[currentRound];
+      const expectedLen = r.expectedOutput.length;
+
+      // Make sure the player actually filled all output slots before sending the slip out
+      if (currentOutput.length < expectedLen) {
+        showToast(`Tap ${expectedLen} symbol(s) to fill the Output Slot before sending!`);
+        return;
+      }
+
+      const shapesMatch = JSON.stringify(currentOutput) === JSON.stringify(r.expectedOutput);
+
+      if (!shapesMatch) {
+        // Player made a mistake! Cut to the angry visitor splash screen
+        const face = document.getElementById("cctv-face");
+        face.textContent = r.failAvatar;
+        document.getElementById("cctv-text").textContent = "Complaining about machine!";
+
+        openCutscene({
+          badge: "⚠️ OUTSIDE CAM • VISITOR REACTION",
+          title: r.failTitle,
+          avatar: r.failAvatar,
+          speech: r.failSpeech,
+          speechType: "angry",
+          slipLabel: "Your Incorrect Slip Sent Outside:",
+          glyphs: [...currentOutput],
+          tileClass: "",
+          btnText: "Oops! Check the Rulebook Again ↺",
+          onContinue: () => {
+            clearOutput();
+            closeCutscene();
+          }
+        });
+        return;
+      }
+
+      // Success! Update Outside Cam & show happy visitor splash screen
+      const face = document.getElementById("cctv-face");
+      face.textContent = r.reactionFace;
+      face.style.transform = "scale(1.25)";
+      setTimeout(() => face.style.transform = "scale(1)", 300);
+      document.getElementById("cctv-text").textContent = r.reactionText;
+
+      openCutscene({
+        badge: "✅ OUTSIDE CAM • VISITOR REACTION",
+        title: r.successTitle,
+        avatar: r.successAvatar,
+        speech: r.successSpeech,
+        speechType: "happy",
+        slipLabel: "Your Matching Slip Sent Outside:",
+        glyphs: [...currentOutput],
+        tileClass: "output-filled",
+        btnText: currentRound < 2 ? "Next Visitor Slip →" : "See Final Evaluation →",
+        onContinue: () => {
+          closeCutscene();
+          if (currentRound < 2) {
+            loadRound(currentRound + 1, true);
+          } else {
+            document.getElementById("overlay-quiz").classList.add("active");
+          }
         }
+      });
+    }
 
-        function updateNarrativeUI() {
-            const phase = narrativePhases[currentNarrative];
-            document.getElementById('narrative-visual').innerText = phase.icon;
-            document.getElementById('narrative-title').innerText = phase.title;
-            document.getElementById('narrative-text').innerText = phase.text;
-            
-            const btn = document.getElementById('narrative-btn');
-            if (currentNarrative === narrativePhases.length - 1) {
-                btn.innerText = "Enter the Room";
-            } else {
-                btn.innerText = "Continue";
-            }
-        }
+    function showToast(msg) {
+      const t = document.getElementById("feedback-toast");
+      t.textContent = msg;
+      t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), 2400);
+    }
 
-        function nextNarrative() {
-            currentNarrative++;
-            if (currentNarrative < narrativePhases.length) {
-                updateNarrativeUI();
-            } else {
-                startGame();
-            }
-        }
+    function showReveal(pickedHonestAnswer) {
+      document.getElementById("overlay-quiz").classList.remove("active");
+      const headline = document.getElementById("reveal-headline");
+      headline.textContent = pickedHonestAnswer
+        ? "Exactly! You had zero idea—you were just matching shapes."
+        : "Lucky guess! Inside the room, you actually had no way of knowing.";
+      document.getElementById("overlay-reveal").classList.add("active");
+    }
 
-        // --- GAME LOGIC ---
-        function startGame() {
-            score = 0;
-            timeLeft = 60;
-            outboxArray = [];
-            currentRule = null; // Reset rule tracking
-            document.getElementById('score-display').innerText = score;
-            document.getElementById('timer-display').innerText = timeLeft;
-            
-            // Build Rulebook
-            const rb = document.getElementById('rulebook-display');
-            rb.innerHTML = '';
-            rules.forEach(r => {
-                rb.innerHTML += `<div>IF INPUT IS <strong>[ ${r.in} ]</strong><br>OUTPUT <strong>[ ${r.out} ]</strong></div><br>`;
-            });
+    function showPoll() {
+      document.getElementById("overlay-reveal").classList.remove("active");
+      document.getElementById("overlay-poll").classList.add("active");
+    }
 
-            // Build Keypad
-            const kp = document.getElementById('keypad-container');
-            kp.innerHTML = '';
-            glyphs.forEach(g => {
-                const btn = document.createElement('button');
-                btn.innerText = g;
-                btn.onclick = () => addToOutbox(g);
-                kp.appendChild(btn);
-            });
+    function castVote(optionIndex) {
+      pollCounts[optionIndex]++;
+      const total = pollCounts.reduce((a, b) => a + b, 0);
 
-            loadNewTask();
-            switchState('game');
-            
-            gameInterval = setInterval(() => {
-                timeLeft--;
-                document.getElementById('timer-display').innerText = timeLeft;
-                if (timeLeft <= 0) endGame();
-            }, 1000);
-        }
+      document.getElementById("poll-buttons").style.display = "none";
+      document.getElementById("poll-results").style.display = "block";
 
-        function loadNewTask() {
-            // Prevent immediate repetition of the same rule
-            let availableRules = rules.filter(r => r !== currentRule);
-            currentRule = availableRules[Math.floor(Math.random() * availableRules.length)];
-            
-            document.getElementById('inbox-display').innerText = currentRule.in;
-            clearOutbox();
-        }
+      for (let i = 0; i < 3; i++) {
+        const pct = Math.round((pollCounts[i] / total) * 100);
+        document.getElementById(`pct-${i}`).textContent = pct + "%";
+        setTimeout(() => {
+          document.getElementById(`bar-${i}`).style.width = pct + "%";
+        }, 100);
+      }
+    }
 
-        function addToOutbox(glyph) {
-            outboxArray.push(glyph);
-            document.getElementById('outbox-display').innerText = outboxArray.join(' ');
-        }
+    function resetGame() {
+      document.getElementById("overlay-poll").classList.remove("active");
+      document.getElementById("poll-buttons").style.display = "grid";
+      document.getElementById("poll-results").style.display = "none";
+      document.getElementById("cctv-face").textContent = "🧑";
+      document.getElementById("cctv-text").textContent = "Waiting for reply...";
+      loadRound(0, true);
+    }
 
-        function clearOutbox() {
-            outboxArray = [];
-            document.getElementById('outbox-display').innerText = '';
-        }
-
-        function showNotification(msg, isSuccess) {
-            const notif = document.getElementById('game-notification');
-            notif.innerText = msg;
-            notif.className = isSuccess ? 'notify-success' : 'notify-error';
-            notif.style.opacity = 1;
-            setTimeout(() => notif.style.opacity = 0, 800);
-        }
-
-        function sendOutput() {
-            const userOutput = outboxArray.join(' ');
-            if (userOutput === currentRule.out) {
-                score++;
-                document.getElementById('score-display').innerText = score;
-                showNotification("SUCCESS", true);
-                loadNewTask();
-            } else {
-                showNotification("SYNTAX ERROR", false);
-                clearOutbox();
-            }
-        }
-
-        function endGame() {
-            clearInterval(gameInterval);
-            startTakeaway();
-        }
-
-        // --- TAKEAWAY LOGIC ---
-        function startTakeaway() {
-            currentTakeaway = 0;
-            updateTakeawayUI();
-            switchState('takeaway');
-        }
-
-        function updateTakeawayUI() {
-            const phase = takeawayPhases[currentTakeaway];
-            document.getElementById('takeaway-visual').innerText = phase.icon;
-            document.getElementById('takeaway-title').innerText = phase.title;
-            // Use innerHTML to respect the \n line breaks in the text string
-            document.getElementById('takeaway-text').innerHTML = phase.text.replace(/\n/g, '<br>');
-            
-            const btn = document.getElementById('takeaway-btn');
-            if (currentTakeaway === takeawayPhases.length - 1) {
-                btn.innerText = "Conclude";
-            } else {
-                btn.innerText = "Continue";
-            }
-        }
-
-        function nextTakeaway() {
-            currentTakeaway++;
-            if (currentTakeaway < takeawayPhases.length) {
-                updateTakeawayUI();
-            } else {
-                showConclusion();
-            }
-        }
-
-        // --- CONCLUSION LOGIC ---
-        function showConclusion() {
-            switchState('conclusion');
-        }
-
-        function resetToGame() {
-            startGame();
-        }
-    </script>
+    window.onload = initGame;
+  </script>
 </body>
 </html>
