@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Deepfake Detective | Forensic Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700;800&family=Special+Elite&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #0a0a0c;
+            --panel-bg: #15161a;
+            --accent-human: #059669; /* Emerald/Safe */
+            --accent-ai: #dc2626; /* Crimson/Alert */
+            --accent-theme: #fbbf24; /* Amber/Detective */
+            --text-main: #f8fafc;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            touch-action: manipulation;
+            background-image: radial-gradient(circle at 50% 50%, #1a1a24 0%, #0a0a0c 100%);
+        }
+
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .font-typewriter {
+            font-family: 'Special Elite', cursive;
+        }
+
+        /* Bento Grid Layout */
+        .bento-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto 1fr auto;
+            gap: 1rem;
+            width: 100%;
+            max-width: 1000px;
+            height: 90vh;
+            max-height: 800px;
+            margin: auto;
+        }
+
+        .bento-panel {
+            background-color: var(--panel-bg);
+            border-radius: 1rem;
+            border: 1px solid rgba(251, 191, 36, 0.15); /* Amber border */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        /* Interactive Buttons */
+        .game-btn {
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.15s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .game-btn::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(0,0,0,0.1) 10px,
+                rgba(0,0,0,0.1) 20px
+            );
+        }
+
+        .game-btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn-human {
+            background: linear-gradient(135deg, #064e3b 0%, #059669 100%);
+            border-bottom: 6px solid #022c22;
+        }
+
+        .btn-ai {
+            background: linear-gradient(135deg, #7f1d1d 0%, #dc2626 100%);
+            border-bottom: 6px solid #450a0a;
+        }
+
+        /* Media Display Area */
+        .media-display {
+            position: relative;
+            background: #050505;
+            background-image: 
+                linear-gradient(rgba(251, 191, 36, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(251, 191, 36, 0.05) 1px, transparent 1px);
+            background-size: 30px 30px;
+            border: 2px solid rgba(251, 191, 36, 0.2);
+        }
+        
+        /* Scanline effect */
+        .media-display::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 20;
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+        }
+
+        /* Animations */
+        @keyframes flashCorrect {
+            0% { box-shadow: inset 0 0 0 0 var(--accent-human); }
+            50% { box-shadow: inset 0 0 0 20px var(--accent-human); }
+            100% { box-shadow: inset 0 0 0 0 var(--accent-human); }
+        }
+
+        @keyframes flashIncorrect {
+            0% { box-shadow: inset 0 0 0 0 #ef4444; }
+            50% { box-shadow: inset 0 0 0 20px #ef4444; }
+            100% { box-shadow: inset 0 0 0 0 #ef4444; }
+        }
+
+        @keyframes pulseTime {
+            0% { color: #ef4444; transform: scale(1); }
+            50% { color: #f8fafc; transform: scale(1.1); }
+            100% { color: #ef4444; transform: scale(1); }
+        }
+
+        .correct-flash { animation: flashCorrect 0.4s ease-out; }
+        .incorrect-flash { animation: flashIncorrect 0.4s ease-out; }
+        .time-warning { animation: pulseTime 1s infinite; }
+
+        /* Hide elements utility */
+        .hidden-screen {
+            display: none !important;
+        }
+    </style>
+</head>
+<body class="w-screen h-screen flex items-center justify-center relative">
+    <div id="start-screen" class="bento-panel w-full max-w-3xl p-10 text-center flex items-center justify-center absolute z-50 h-[60vh] border-t-4 border-t-amber-500">
+        <div class="absolute top-4 right-4 border-2 border-red-600 text-red-600 font-bold font-typewriter transform rotate-12 px-2 py-1 opacity-70">CONFIDENTIAL</div>
+        <p class="text-amber-500 font-mono text-sm tracking-widest mb-2 uppercase">Digital Forensics Division</p>
+        <h1 class="text-5xl font-black mb-4 tracking-tight font-typewriter">THE DEEPFAKE <span class="text-amber-500">DETECTIVE</span></h1>
+        <p class="text-lg text-gray-400 mb-8 max-w-xl mx-auto font-mono">Your investigative skills are required. Review the evidence files. Swipe or tap to classify the media as AUTHENTIC or a FORGERY.</p>
+        
+        <div class="grid grid-cols-2 gap-4 mb-8 text-left max-w-lg mx-auto w-full font-mono">
+            <div class="bg-gray-900/80 p-4 rounded-xl border-l-4 border-emerald-500">
+                <h3 class="font-bold text-emerald-400 mb-1">AUTHENTIC (HUMAN)</h3>
+                <p class="text-xs text-gray-400">Unaltered, verified organic reality.</p>
+            </div>
+            <div class="bg-gray-900/80 p-4 rounded-xl border-l-4 border-red-500">
+                <h3 class="font-bold text-red-400 mb-1">FORGERY (AI)</h3>
+                <p class="text-xs text-gray-400">Synthetic, manipulated, deepfaked.</p>
+            </div>
+        </div>
+
+        <button onclick="startGame()" class="bg-amber-500 text-black font-black font-mono text-2xl py-4 px-12 hover:bg-amber-400 transition-colors shadow-[0_0_20px_rgba(251,191,36,0.2)] border-2 border-amber-600">
+            > OPEN CASE FILE
+        </button>
+    </div>
+
+    <div id="game-screen" class="bento-container hidden-screen">
+        
+        <!-- HUD: Streak/Score -->
+        <div class="bento-panel col-span-1 flex items-center justify-center p-4 border-t-2 border-t-amber-500/50">
+            <div class="text-center">
+                <p class="text-xs text-amber-500 font-bold tracking-widest uppercase mb-1 font-mono">Forensic Score</p>
+                <p id="score-display" class="text-4xl font-black font-mono text-white">000</p>
+                <p id="level-display" class="text-xs text-emerald-400 mt-1 font-mono">CASE 1: THE ROOKIE MISTAKES</p>
+            </div>
+        </div>
+
+        <!-- HUD: Timer -->
+        <div class="bento-panel col-span-1 flex items-center justify-center p-4 border-t-2 border-t-amber-500/50">
+            <div class="text-center">
+                <p class="text-xs text-amber-500 font-bold tracking-widest uppercase mb-1 font-mono">Time Until Auto-Close</p>
+                <p id="time-display" class="text-5xl font-black font-mono text-white">30.0</p>
+            </div>
+        </div>
+
+        <!-- Main Media Display -->
+        <div id="media-panel" class="bento-panel col-span-2 media-display flex flex-col items-center justify-center p-4 relative overflow-hidden">
+            <div class="absolute top-4 left-4 flex gap-2 z-30 bg-black/80 border border-amber-500/30 p-2 rounded">
+                <div class="w-3 h-3 rounded-full bg-amber-500 animate-pulse"></div>
+                <span class="text-xs font-mono text-amber-500 uppercase">Scanning Evidence...</span>
+            </div>
+            
+            <!-- Simulated Media Content -->
+            <div id="media-content" class="w-full h-full flex flex-col items-center justify-center text-center z-10">
+                <!-- Media Container (Image/Video/Audio) -->
+                <div id="media-asset-container" class="w-full flex-grow flex items-center justify-center mb-4 relative overflow-hidden bg-black/60 shadow-inner border border-gray-800">
+                     <div id="media-icon" class="text-6xl absolute z-0 opacity-10">📸</div>
+                     <img id="media-image" src="" alt="Diagnostic Image" class="hidden max-h-[45vh] max-w-full object-contain relative z-10 shadow-2xl" />
+                     <video id="media-video" src="" class="hidden max-h-[45vh] max-w-full object-contain relative z-10 shadow-2xl" controls loop muted></video>
+                     <audio id="media-audio" src="" class="hidden w-full max-w-md relative z-10" controls></audio>
+                </div>
+
+                <div class="bg-gray-900 w-full p-4 border-l-4 border-amber-500">
+                    <h2 id="media-title" class="text-xl font-bold mb-2 text-white flex items-center justify-center gap-2 font-mono">
+                        <span id="title-icon">📸</span> Asset Loading...
+                    </h2>
+                    <p id="media-desc" class="text-sm text-gray-400 font-typewriter">
+                        Connecting to database...
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Control Buttons -->
+        <div class="col-span-2 grid grid-cols-2 gap-4">
+            <div onclick="handleChoice(false)" class="game-btn btn-human bento-panel flex flex-col items-center justify-center p-6 h-32 rounded-lg">
+                <span class="text-3xl font-black text-white tracking-widest drop-shadow-md font-typewriter">AUTHENTIC</span>
+                <span class="text-emerald-200 opacity-90 mt-1 font-mono text-sm">[ Verified Human ]</span>
+            </div>
+            <div onclick="handleChoice(true)" class="game-btn btn-ai bento-panel flex flex-col items-center justify-center p-6 h-32 rounded-lg">
+                <span class="text-3xl font-black text-white tracking-widest drop-shadow-md font-typewriter">FORGERY</span>
+                <span class="text-red-200 opacity-90 mt-1 font-mono text-sm">[ Deepfake AI ]</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="results-screen" class="bento-panel w-full max-w-3xl p-10 text-center flex-col items-center justify-center absolute z-50 h-[80vh] hidden-screen border-t-4 border-t-amber-500">
+        <p class="text-amber-500 font-mono text-sm tracking-widest mb-2 uppercase">File Closed</p>
+        <h2 class="text-4xl font-bold text-white mb-2 font-typewriter uppercase tracking-widest">Investigation Concluded</h2>
+        <h1 id="final-score" class="text-7xl font-black font-mono text-amber-500 mb-6 drop-shadow-[0_0_15px_rgba(251,191,36,0.3)]">85%</h1>
+        
+        <div id="diagnostic-report" class="bg-gray-900/80 p-8 border border-gray-700 border-l-4 border-l-amber-500 mb-8 text-left w-full max-w-2xl relative">
+            <div class="absolute top-2 right-2 text-gray-600 font-mono text-xs">DOC-ID: #88392-A</div>
+            <h3 class="text-xl font-bold mb-4 text-amber-400 font-mono">> Chief's Forensic Summary:</h3>
+            <p id="report-text" class="text-lg text-gray-300 leading-relaxed font-typewriter">
+                Your senses are reliable for obvious truths, but vulnerable to sophisticated deception. You must rely on external verification—not just your eyes.
+            </p>
+        </div>
+
+        <div class="flex items-center gap-6 bg-black/50 p-6 border border-gray-700">
+            <div class="w-16 h-16 bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-[0_0_15px_rgba(251,191,36,0.4)] transform rotate-90 clip-path-hex">
+                <!-- Hexagon representation for the token -->
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#451a03" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+            </div>
+            <div class="text-left">
+                <h4 class="font-bold text-xl text-white font-mono">Secure Your Evidence Token</h4>
+                <p class="text-gray-400 text-sm mt-1">Take your encoded token to <strong class="text-amber-400">The Council</strong> in Zone 3 to debrief your findings.</p>
+            </div>
+        </div>
+
+        <button onclick="resetGame()" class="mt-8 text-gray-500 hover:text-amber-400 transition-colors font-mono uppercase tracking-widest text-sm underline decoration-gray-700 underline-offset-4">
+            [ Start New Investigation ]
+        </button>
+    </div>
+
+    <script>
+        // Game Database (With actual media URLs where possible)
+        const mediaDatabase = [
+            // Level 1: Obvious Flaws
+            { type: "image", icon: "📸", title: "Visual Scan: Portrait", desc: "A photograph of a family eating dinner. The father appears to have three hands resting on the table.", isAI: true, level: 1, url: "https://images.unsplash.com/photo-1543352634-99a5d50ae78e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" }, // Using a generic placeholder as AI generation of specific anatomical flaws is restricted. We treat it as the 'flawed' image for the game logic.
+            { type: "image", icon: "📸", title: "Visual Scan: Wildlife", desc: "Standard high-resolution photograph of a golden retriever catching a frisbee in a park.", isAI: false, level: 1, url: "https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" },
+            { type: "audio", icon: "🔊", title: "Audio Scan: Voice Message", desc: "A perfectly monotone voice without any background noise asking for bank details.", isAI: true, level: 1, url: "https://upload.wikimedia.org/wikipedia/commons/3/30/Computer_Voice.ogg" }, // Generic computer voice placeholder
+            { type: "video", icon: "🎬", title: "Video Scan: Dashcam", desc: "Dashcam footage of a car driving. Windshield wipers sync perfectly with the water clearing.", isAI: false, level: 1, url: "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4" }, // Placeholder video
+            
+            // Level 2: The Uncanny Valley
+            { type: "video", icon: "🎬", title: "Video Scan: Anchor", desc: "An anchor reporting news. Blinking rate is erratic and lip movements slightly lag.", isAI: true, level: 2, url: "https://test-videos.co.uk/vids/jellyfish/mp4/h264/720/Jellyfish_720_10s_1MB.mp4" }, // Placeholder video
+            { type: "image", icon: "📸", title: "Visual Scan: Landscape", desc: "A heavily color-graded, but structurally logical photo of a canyon.", isAI: false, level: 2, url: "https://images.unsplash.com/photo-1474044159687-1ee9f3a51722?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" },
+            { type: "image", icon: "📸", title: "Visual Scan: Crowd", desc: "A crowd. Faces in the deep background blend into the signage, creating a smudged texture.", isAI: true, level: 2, url: "https://images.unsplash.com/photo-1470229722913-7c090bedbcex?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" }, // Intentionally slightly broken URL to mimic 'smudged/broken' look or just load a generic crowd
+            { type: "audio", icon: "🔊", title: "Audio Scan: Podcast", desc: "Two hosts talking over each other slightly, with one pausing to clear their throat naturally.", isAI: false, level: 2, url: "https://upload.wikimedia.org/wikipedia/commons/5/5b/Hello_World_Podcast_-_Episode_1.ogg" }, // Placeholder audio
+
+            // Level 3: The Epistemological Crisis (Very Hard)
+            { type: "image", icon: "📸", title: "Visual Scan: Studio Portrait", desc: "A flawlessly lit portrait with perfect skin texture, individual pores visible, and unnatural eye reflections.", isAI: true, level: 3, url: "https://thispersondoesnotexist.com/" }, // Excellent true AI source
+            { type: "audio", icon: "🔊", title: "Audio Scan: Voicemail", desc: "A frantic voice claiming they lost their phone, utilizing slight static and urgency.", isAI: true, level: 3, url: "https://upload.wikimedia.org/wikipedia/commons/1/15/Apollo_13_Houston_we_have_a_problem.ogg" }, // Iconic real audio used here as a challenging placeholder
+            { type: "video", icon: "🎬", title: "Video Scan: Cellphone", desc: "Shaky, vertical footage of a bizarre phenomenon, shot through a dirty window.", isAI: false, level: 3, url: "https://test-videos.co.uk/vids/sintel/mp4/h264/720/Sintel_720_10s_1MB.mp4" }, // Placeholder
+            { type: "image", icon: "📸", title: "Visual Scan: Macro Nature", desc: "An award-winning close-up of a rare frog sitting on a perfectly symmetrical leaf.", isAI: true, level: 3, url: "https://images.unsplash.com/photo-1579308151322-86ec11d9f046?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" } // Placeholder
+        ];
+
+        // Game State
+        let currentQueue = [];
+        let currentMediaIndex = 0;
+        let score = 0;
+        let totalQuestions = 0;
+        let timeLeft = 30.0;
+        let timerInterval = null;
+        let isPlaying = false;
+
+        // DOM Elements
+        const screens = {
+            start: document.getElementById('start-screen'),
+            game: document.getElementById('game-screen'),
+            results: document.getElementById('results-screen')
+        };
+        const displays = {
+            score: document.getElementById('score-display'),
+            level: document.getElementById('level-display'),
+            time: document.getElementById('time-display'),
+            icon: document.getElementById('media-icon'),
+            titleIcon: document.getElementById('title-icon'),
+            title: document.getElementById('media-title'),
+            desc: document.getElementById('media-desc'),
+            panel: document.getElementById('media-panel'),
+            
+            // Media elements
+            img: document.getElementById('media-image'),
+            vid: document.getElementById('media-video'),
+            aud: document.getElementById('media-audio')
+        };
+
+        function initQueue() {
+            // Shuffle database and pick a set number of questions to ensure a good mix of levels
+            const shuffled = [...mediaDatabase].sort(() => 0.5 - Math.random());
+            currentQueue = shuffled.slice(0, 8); // Play 8 rounds
+            totalQuestions = currentQueue.length;
+        }
+
+        function startGame() {
+            screens.start.classList.add('hidden-screen');
+            screens.results.classList.add('hidden-screen');
+            screens.game.classList.remove('hidden-screen');
+            
+            initQueue();
+            score = 0;
+            currentMediaIndex = 0;
+            timeLeft = 45.0; // 45 seconds to get through 8 questions
+            isPlaying = true;
+            
+            updateHUD();
+            renderMedia();
+            
+            // Start Timer Loop
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if(!isPlaying) return;
+                
+                timeLeft -= 0.1;
+                displays.time.innerText = Math.max(0, timeLeft).toFixed(1);
+                
+                if (timeLeft <= 5.0 && !displays.time.classList.contains('time-warning')) {
+                    displays.time.classList.add('time-warning');
+                }
+
+                if (timeLeft <= 0) {
+                    endGame("TIME EXPIRED");
+                }
+            }, 100);
+        }
+
+        function renderMedia() {
+            if (currentMediaIndex >= currentQueue.length) {
+                endGame("DATABASE DEPLETED");
+                return;
+            }
+
+            const media = currentQueue[currentMediaIndex];
+            
+            // Update UI Text
+            displays.icon.innerText = media.icon;
+            displays.titleIcon.innerText = media.icon;
+            displays.title.innerHTML = `<span id="title-icon">${media.icon}</span> ${media.title}`;
+            displays.desc.innerText = media.desc;
+            
+            // Reset and configure media elements
+            displays.img.classList.add('hidden');
+            displays.vid.classList.add('hidden');
+            displays.aud.classList.add('hidden');
+            displays.vid.pause();
+            displays.aud.pause();
+
+            // Load new media based on type
+            if (media.type === 'image') {
+                displays.img.src = media.url;
+                // For thispersondoesnotexist, force a cache bypass to get a new image if it appears twice
+                if(media.url.includes("thispersondoesnotexist")) {
+                    displays.img.src = media.url + "?t=" + new Date().getTime();
+                }
+                displays.img.classList.remove('hidden');
+            } else if (media.type === 'video') {
+                displays.vid.src = media.url;
+                displays.vid.classList.remove('hidden');
+                displays.vid.play().catch(e => console.log("Autoplay prevented:", e));
+            } else if (media.type === 'audio') {
+                displays.aud.src = media.url;
+                displays.aud.classList.remove('hidden');
+                displays.aud.play().catch(e => console.log("Autoplay prevented:", e));
+            }
+            
+            // Update Level Indicator
+            let levelText = "CASE 1: THE ROOKIE MISTAKES";
+            let levelColor = "text-emerald-400";
+            if(media.level === 2) {
+                levelText = "CASE 2: THE UNCANNY VALLEY";
+                levelColor = "text-amber-400";
+            } else if (media.level === 3) {
+                levelText = "CASE 3: FORENSIC NIGHTMARE";
+                levelColor = "text-red-400";
+            }
+            
+            displays.level.className = `text-xs mt-1 font-bold font-mono ${levelColor}`;
+            displays.level.innerText = levelText;
+        }
+
+        function handleChoice(isPlayerGuessSynthetic) {
+            if (!isPlaying) return;
+
+            // Pause media before moving on
+            displays.vid.pause();
+            displays.aud.pause();
+
+            const currentMedia = currentQueue[currentMediaIndex];
+            const isCorrect = isPlayerGuessSynthetic === currentMedia.isAI;
+
+            // Visual Feedback
+            displays.panel.classList.remove('correct-flash', 'incorrect-flash');
+            void displays.panel.offsetWidth; // Trigger reflow to restart animation
+            
+            if (isCorrect) {
+                score += 100 * (currentMedia.level); // More points for harder levels
+                displays.panel.classList.add('correct-flash');
+            } else {
+                timeLeft -= 3.0; // Time penalty for wrong answers
+                displays.panel.classList.add('incorrect-flash');
+            }
+
+            currentMediaIndex++;
+            updateHUD();
+            renderMedia();
+        }
+
+        function updateHUD() {
+            displays.score.innerText = score.toString().padStart(4, '0');
+        }
+
+        function endGame(reason) {
+            isPlaying = false;
+            clearInterval(timerInterval);
+            displays.time.classList.remove('time-warning');
+            
+            // Stop media
+            displays.vid.pause();
+            displays.aud.pause();
+            
+            screens.game.classList.add('hidden-screen');
+            screens.results.classList.remove('hidden-screen');
+
+            // Calculate accuracy
+            const maxPossibleScore = currentQueue.reduce((acc, curr) => acc + (100 * curr.level), 0);
+            const accuracy = Math.round((score / maxPossibleScore) * 100) || 0;
+            
+            document.getElementById('final-score').innerText = `${accuracy}% CLEARANCE`;
+
+            // Generate Diagnostic Report based on performance
+            const reportText = document.getElementById('report-text');
+            if (accuracy >= 90) {
+                reportText.innerHTML = "Exceptional perception, Detective. You successfully identified synthetic artifacts even at the highest levels of generation. However, as AI improves, human intuition will eventually fail. <strong>When seeing is no longer believing, how do we establish truth?</strong>";
+            } else if (accuracy >= 50) {
+                reportText.innerHTML = "Your senses are reliable for obvious forgeries, but vulnerable to sophisticated deception in the 'Uncanny Valley.' A good detective learns to rely on external verification protocols, not just their organic senses.";
+            } else {
+                reportText.innerHTML = "Critical perception failure. You consistently mistook synthetic generation for organic reality. This demonstrates the fragility of human epistemology in the digital age. Your case files have been flagged for review.";
+            }
+        }
+
+        function resetGame() {
+            screens.results.classList.add('hidden-screen');
+            screens.start.classList.remove('hidden-screen');
+        }
+    </script>
+</body>
+</html>
