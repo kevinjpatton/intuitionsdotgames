@@ -23,13 +23,10 @@
     {{ content }}
 
     <footer class="fade-in delay-2">
-  <a id="back-btn" href="/">Back to main directory</a>
+   {% if page.url != "/" and page.url != "/index.html" %}
+    <a href="/">Back to main directory</a>
+  {% endif %}        
         
-<script>
-  if (window.location.pathname === '/' || window.location.pathname === '/index.html') {
-    document.getElementById('back-btn').style.display = 'none';
-  }
-</script>        
         <div class="container">
             <p class="footer-text">Interested in collaborating, beta testing, or bringing these tools into your classroom?</p>
             <a href="mailto:gandalf@intuitions.games" class="contact-btn">Contact Us</a>
